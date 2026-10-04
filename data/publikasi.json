@@ -5,15 +5,21 @@
   "jurnal": "Jurnal Geofisika (dummy)",
   "tahun": 2022,
   "jenis": "Jurnal",
-  "kata_kunci": "geolistrik inversi sesar"
+  "peran": "Penulis pertama",
+  "kata_kunci": "geolistrik; inversi; sesar",
+  "kuartil": "Q3",
+  "sinta": "S2"
  },
  {
   "judul": "Karakterisasi reservoir panas bumi dengan magnetotelurik",
-  "penulis": "W.E. Junian et al.",
+  "penulis": "A. Peneliti, W.E. Junian",
   "jurnal": "Prosiding SNF (dummy)",
   "tahun": 2023,
   "jenis": "Prosiding",
-  "kata_kunci": "panas bumi magnetotelurik"
+  "peran": "Kolaborator",
+  "kata_kunci": "panas bumi; magnetotelurik; inversi",
+  "kuartil": "",
+  "sinta": ""
  },
  {
   "judul": "Analisis anomali gravitasi cekungan Lampung",
@@ -21,14 +27,20 @@
   "jurnal": "Jurnal Fisika (dummy)",
   "tahun": 2024,
   "jenis": "Jurnal",
-  "kata_kunci": "gravitasi cekungan"
+  "peran": "Penulis pertama",
+  "kata_kunci": "gravitasi; cekungan; Lampung",
+  "kuartil": "",
+  "sinta": "S3"
  },
  {
   "judul": "Machine learning untuk klasifikasi litologi",
-  "penulis": "W.E. Junian et al.",
+  "penulis": "B. Peneliti, W.E. Junian",
   "jurnal": "Prosiding (dummy)",
   "tahun": 2025,
   "jenis": "Prosiding",
-  "kata_kunci": "machine learning litologi"
+  "peran": "Kolaborator",
+  "kata_kunci": "machine learning; litologi; inversi",
+  "kuartil": "",
+  "sinta": ""
  }
 ]
