@@ -38,7 +38,7 @@ const stamp=()=>`<p class="muted">${u('upd')}: ${D.site.updated} · ${u('src')}:
 const V={
  home(){const s=D.site,st=[[D.publikasi.length,'pub'],[s.stats.sitasi,'cit'],[s.stats.hindex,'h'],[D.bimbingan.length,'mhs'],[D.proyek.length,'prj']];
   return `<section class="hero"><div><span class="role">${t(s.jabatan)} · ${s.afiliasi}</span><h1>${s.nama}</h1><p>${t(s.ringkas)}</p>
-  <a class="btn" href="${s.cv}">${u('cv')}</a><a class="btn alt" href="${H('kontak')}">${u('hubungi')}</a></div>
+  <a class="btn" href="${H('kontak')}">${u('hubungi')}</a></div>
   <div class="photo" role="img" aria-label="Foto ${s.nama}" style="background-image:url(${s.foto})"></div>
   <svg class="seismo" viewBox="0 0 1000 70" preserveAspectRatio="none" aria-hidden="true"><path d="M0 35H180l10-10 12 22 14-36 16 52 14-46 12 30 10-12H520l8-8 10 16 12-28 14 40 10-22 8 8H1000"/></svg></section>
   <div class="stats">${st.map(([n,k])=>`<div class="stat"><b data-n="${n}">0</b>${u(k)}</div>`).join('')}</div>
