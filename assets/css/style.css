@@ -35,3 +35,8 @@ main{max-width:1100px;margin:auto;padding:24px 20px 60px;min-height:70vh}
 footer{background:var(--hero);color:#CFD9EA;text-align:center;padding:22px;font-size:.9rem}
 @media(max-width:800px){.hero,.book{grid-template-columns:1fr}.toc{position:static}#burger{display:block}#menu{display:none;position:absolute;top:100%;left:0;right:0;flex-direction:column;background:var(--hero);padding:10px 20px}#menu.open{display:flex}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important}.seismo path{stroke-dashoffset:0}}
+.cloud{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline;padding:16px;background:var(--card);border:1px solid var(--line);border-radius:14px}
+.cloud button{font-family:'Bricolage Grotesque',sans-serif;font-weight:700;background:none;border:0;cursor:pointer;color:var(--accent);padding:2px 6px;border-radius:6px}
+.cloud button:nth-child(3n+2){color:var(--ink)}.cloud button:nth-child(3n){color:#3B82C4}.cloud button.on{background:var(--orange);color:var(--navy)}
+.cloud sup{font-size:.6em;color:var(--mute);margin-left:2px}.cloud button.on sup{color:var(--navy)}.chip.first{background:var(--orange);color:var(--navy)}
+.chip.rank{background:none;border:1px solid var(--orange)}
