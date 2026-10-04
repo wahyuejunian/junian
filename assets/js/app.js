@@ -45,7 +45,8 @@ const V={
   <p>${(s.keahlian||[]).map(k=>`<span class="chip">${t(k)}</span>`).join('')}</p>`},
  profil(){const s=D.site;return `<h1>${u('profil')}</h1><p>${t(s.bio)}</p><h2>${lang=='id'?'Pendidikan':'Education'}</h2>${s.pendidikan.map(e=>`<div class="item"><b>${e.jenjang}</b> — ${e.kampus} <span class="muted">${e.tahun}</span></div>`).join('')}<h2>Link</h2>${links(s.links)}`},
  penelitian(){return `<h1>${u('penelitian')}</h1>${stamp()}<div class="charts">${box('c1')}${box('c2')}</div>
-  <div class="tools"><input id="q" type="search" placeholder="${u('search')}" aria-label="${u('search')}"><select id="fy" aria-label="${u('year')}"></select><select id="ft" aria-label="${u('type')}"></select></div><div id="list"></div><h2>Hibah</h2>${D.hibah.map(h=>`<div class="item"><b>${h.judul}</b><br><span class="muted">${h.skema} · ${h.tahun} · ${h.peran}</span></div>`).join('')}`},
+  <h2>${lang=='id'?'Kata kunci':'Keywords'}</h2><div class="cloud" id="cloud"></div><p id="sum" class="muted"></p>
+  <div class="tools"><input id="q" type="search" placeholder="${u('search')}" aria-label="${u('search')}"><select id="fy" aria-label="${u('year')}"></select><select id="ft" aria-label="${u('type')}"></select><select id="fp" aria-label="Peran"></select><select id="fq" aria-label="Peringkat"></select></div><div id="list"></div><h2>Hibah</h2>${D.hibah.map(h=>`<div class="item"><b>${h.judul}</b><br><span class="muted">${h.skema} · ${h.tahun} · ${h.peran}</span></div>`).join('')}`},
  pengabdian(){return `<h1>${u('pengabdian')}</h1>${stamp()}<div class="charts">${box('c1')}${box('c2')}</div><div class="grid">${D.pengabdian.map(p=>`<article class="card"><h3>${p.judul}</h3><p class="muted">${p.mitra} · ${p.lokasi} · ${p.tahun}</p><span class="chip">${p.bidang}</span></article>`).join('')}</div>`},
  bimbingan(){return `<h1>${u('bimbingan')}</h1>${stamp()}<div class="charts">${box('c1')}</div>
   <div class="tools"><input id="q" type="search" placeholder="${u('search')}" aria-label="${u('search')}"><select id="fy" aria-label="${u('year')}"></select><select id="fs" aria-label="Status"></select><select id="fj" aria-label="Level"></select></div><div id="list"></div>`},
@@ -66,10 +67,20 @@ const after={
  penelitian(){const P=D.publikasi,y=years(P);
   chart('c1','bar',y,[{label:u('pub'),data:perYear(P,y)}],u('pub'));
   const ty=count(P,'jenis');chart('c2','doughnut',Object.keys(ty),[{data:Object.values(ty)}],u('type'));
-  const fy=$('#fy'),ft=$('#ft');fy.innerHTML=`<option value="">${u('year')}</option>`+y.map(v=>`<option>${v}</option>`).join('');ft.innerHTML=`<option value="">${u('type')}</option>`+Object.keys(ty).map(v=>`<option>${v}</option>`).join('');
-  const go=()=>{const q=$('#q').value.toLowerCase(),r=P.filter(p=>(!fy.value||p.tahun==fy.value)&&(!ft.value||p.jenis==ft.value)&&(p.judul+p.kata_kunci).toLowerCase().includes(q));
-   $('#list').innerHTML=r.map(p=>`<div class="item"><b>${p.judul}</b><br><span class="muted">${p.penulis} · ${p.jurnal} · ${p.tahun}</span> <span class="chip">${p.jenis}</span></div>`).join('')||`<p class="note">${u('empty')}</p>`};
-  ['q','fy','ft'].forEach(i=>$('#'+i).oninput=go);go()},
+  const fy=$('#fy'),ft=$('#ft'),fp=$('#fp'),fq=$('#fq'),pr=[...new Set(P.map(x=>x.peran).filter(Boolean))];
+  fy.innerHTML=`<option value="">${u('year')}</option>`+y.map(v=>`<option>${v}</option>`).join('');ft.innerHTML=`<option value="">${u('type')}</option>`+Object.keys(ty).map(v=>`<option>${v}</option>`).join('');fp.innerHTML=`<option value="">${lang=='id'?'Peran':'Role'}</option>`+pr.map(v=>`<option>${v}</option>`).join('');
+  /* kuartil (Q1-Q4) dan sinta (S1-S6) bersifat opsional */
+  fq.innerHTML=`<option value="">${lang=='id'?'Peringkat':'Rank'}</option>`+[...new Set(P.flatMap(x=>[x.kuartil,x.sinta]).filter(Boolean))].sort().map(v=>`<option>${v}</option>`).join('');
+  $('#sum').textContent=pr.map(v=>`${v}: ${P.filter(x=>x.peran==v).length}`).join(' · ');
+  /* Word cloud kata kunci: dipisah titik koma (;), ukuran huruf mengikuti frekuensi, klik untuk memfilter */
+  const kws=p=>(p.kata_kunci||'').split(/[;,]/).map(x=>x.trim()).filter(Boolean),kc={};
+  P.forEach(p=>kws(p).forEach(k=>{const l=k.toLowerCase();(kc[l]=kc[l]||{k,n:0}).n++}));
+  const ks=Object.values(kc).sort((a,b)=>b.n-a.n||a.k.localeCompare(b.k)),mx=ks.length?ks[0].n:1,mn=ks.length?ks[ks.length-1].n:1;let kw='';
+  const cloud=()=>{$('#cloud').innerHTML=ks.map(o=>{const on=kw==o.k.toLowerCase();return `<button type="button" class="${on?'on':''}" aria-pressed="${on}" style="font-size:${(0.85+(mx==mn?.4:(o.n-mn)/(mx-mn))*1.5).toFixed(2)}rem">${o.k}<sup>${o.n}</sup></button>`}).join('')};
+  const go=()=>{const q=$('#q').value.toLowerCase(),r=P.filter(p=>(!fy.value||p.tahun==fy.value)&&(!ft.value||p.jenis==ft.value)&&(!fp.value||p.peran==fp.value)&&(!fq.value||p.kuartil==fq.value||p.sinta==fq.value)&&(!kw||kws(p).some(k=>k.toLowerCase()==kw))&&(p.judul+p.kata_kunci).toLowerCase().includes(q));
+   $('#list').innerHTML=r.map(p=>`<div class="item"><b>${p.judul}</b><br><span class="muted">${p.penulis} · ${p.jurnal} · ${p.tahun}</span> <span class="chip">${p.jenis}</span>${p.peran?`<span class="chip ${p.peran=='Penulis pertama'?'first':''}">${p.peran}</span>`:''}${p.kuartil?`<span class="chip rank">${p.kuartil}</span>`:''}${p.sinta?`<span class="chip rank">${p.sinta}</span>`:''}</div>`).join('')||`<p class="note">${u('empty')}</p>`};
+  $('#cloud').onclick=e=>{const b=e.target.closest('button');if(!b)return;const k=b.firstChild.textContent.toLowerCase();kw=kw==k?'':k;cloud();go()};
+  ['q','fy','ft','fp','fq'].forEach(i=>$('#'+i).oninput=go);cloud();go()},
  pengabdian(){const P=D.pengabdian,y=years(P),b=count(P,'bidang');chart('c1','bar',y,[{label:'#',data:perYear(P,y)}],u('pengabdian'));chart('c2','doughnut',Object.keys(b),[{data:Object.values(b)}],'Bidang')},
  bimbingan(){const M=D.bimbingan,y=years(M),st=[...new Set(M.map(x=>x.status))],js=[...new Set(M.map(x=>x.jenjang))].sort();
   const sets=st.map(v=>({label:v,data:y.map(a=>M.filter(x=>x.tahun==a&&x.status==v).length)}));sets.stacked=true;chart('c1','bar',y,sets,'Status / '+u('year'));
