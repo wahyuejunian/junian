@@ -1,1 +1,38 @@
-[{"nama":"Mahasiswa A","jenjang":"Skripsi","status":"Lulus","tahun":2024,"topik":"Interpretasi data gravitasi"},{"nama":"Mahasiswa B","jenjang":"Skripsi","status":"Berjalan","tahun":2025,"topik":"Inversi geolistrik 2D"},{"nama":"Mahasiswa C","jenjang":"Tesis","status":"Berjalan","tahun":2026,"topik":"Machine learning seismik"}]
+[
+ {
+  "nama": "Mahasiswa A",
+  "jenjang": "S1",
+  "jenis": "Skripsi",
+  "topik": "Interpretasi data gravitasi",
+  "tahun": 2024,
+  "status": "Lulus",
+  "tandem1_nama": "Dr. Dosen X",
+  "tandem1_institusi": "ITERA",
+  "tandem2_nama": "",
+  "tandem2_institusi": ""
+ },
+ {
+  "nama": "Mahasiswa B",
+  "jenjang": "S1",
+  "jenis": "Skripsi",
+  "topik": "Inversi geolistrik 2D",
+  "tahun": 2025,
+  "status": "Berjalan",
+  "tandem1_nama": "Dr. Dosen Y",
+  "tandem1_institusi": "ITB",
+  "tandem2_nama": "Dr. Dosen Z",
+  "tandem2_institusi": "BRIN"
+ },
+ {
+  "nama": "Mahasiswa C",
+  "jenjang": "S2",
+  "jenis": "Tesis",
+  "topik": "Machine learning seismik",
+  "tahun": 2026,
+  "status": "Berjalan",
+  "tandem1_nama": "Prof. Dosen W",
+  "tandem1_institusi": "UGM",
+  "tandem2_nama": "",
+  "tandem2_institusi": ""
+ }
+]
