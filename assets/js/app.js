@@ -44,10 +44,11 @@ const V={
   <div class="stats">${st.map(([n,k])=>`<div class="stat"><b data-n="${n}">0</b>${u(k)}</div>`).join('')}</div>
   <p>${(s.keahlian||[]).map(k=>`<span class="chip">${t(k)}</span>`).join('')}</p>`},
  profil(){const s=D.site;return `<h1>${u('profil')}</h1><p>${t(s.bio)}</p><h2>${lang=='id'?'Pendidikan':'Education'}</h2>${s.pendidikan.map(e=>`<div class="item"><b>${e.jenjang}</b> — ${e.kampus} <span class="muted">${e.tahun}</span></div>`).join('')}<h2>Link</h2>${links(s.links)}`},
- penelitian(){return `<h1>${u('penelitian')}</h1>${stamp()}<div class="charts">${box('c1')}${box('c2')}${box('c3')}${box('c4')}</div>
-  <div class="tools"><input id="q" type="search" placeholder="${u('search')}" aria-label="${u('search')}"><select id="fy" aria-label="${u('year')}"></select><select id="ft" aria-label="${u('type')}"></select></div><div id="list"></div><h2>Hibah</h2>${D.hibah.map(h=>`<div class="item"><b>${h.judul}</b><br><span class="muted">${h.skema} · ${h.tahun} · Rp ${(+h.dana).toLocaleString('id-ID')}</span></div>`).join('')}`},
+ penelitian(){return `<h1>${u('penelitian')}</h1>${stamp()}<div class="charts">${box('c1')}${box('c2')}</div>
+  <div class="tools"><input id="q" type="search" placeholder="${u('search')}" aria-label="${u('search')}"><select id="fy" aria-label="${u('year')}"></select><select id="ft" aria-label="${u('type')}"></select></div><div id="list"></div><h2>Hibah</h2>${D.hibah.map(h=>`<div class="item"><b>${h.judul}</b><br><span class="muted">${h.skema} · ${h.tahun} · ${h.peran}</span></div>`).join('')}`},
  pengabdian(){return `<h1>${u('pengabdian')}</h1>${stamp()}<div class="charts">${box('c1')}${box('c2')}</div><div class="grid">${D.pengabdian.map(p=>`<article class="card"><h3>${p.judul}</h3><p class="muted">${p.mitra} · ${p.lokasi} · ${p.tahun}</p><span class="chip">${p.bidang}</span></article>`).join('')}</div>`},
- bimbingan(){return `<h1>${u('bimbingan')}</h1>${stamp()}<div class="charts">${box('c1')}${box('c2')}</div>${D.bimbingan.map(b=>`<div class="item"><b>${b.topik}</b><br><span class="muted">${b.nama} · ${b.jenjang} · ${b.tahun}</span> <span class="chip">${b.status}</span></div>`).join('')}`},
+ bimbingan(){return `<h1>${u('bimbingan')}</h1>${stamp()}<div class="charts">${box('c1')}</div>
+  <div class="tools"><input id="q" type="search" placeholder="${u('search')}" aria-label="${u('search')}"><select id="fy" aria-label="${u('year')}"></select><select id="fs" aria-label="Status"></select><select id="fj" aria-label="Level"></select></div><div id="list"></div>`},
  kuliah(id,m){const c=D.matakuliah.find(x=>x.id==id);
   if(!c)return `<h1>${u('kuliah')}</h1><div class="grid">${D.matakuliah.map(c=>`<a class="card" href="${H('mata-kuliah','?id='+c.id)}"><h3>${t(c.nama)}</h3><p class="muted">${c.kode} · ${c.sks} SKS · ${lang=='id'?'Semester':'Semester'} ${c.semester}</p><p>${t(c.deskripsi)}</p></a>`).join('')}</div>`;
   const p=c.pertemuan[m-1];if(p)return `<p><a href="${H('mata-kuliah','?id='+id)}">← ${t(c.nama)}</a></p><h1>${u('meet')} ${m}</h1><h2>${t(p.topik)}</h2>${p.slide?`<p><a href="${p.slide}">Slide</a>${p.video?` · <a href="${p.video}">Video</a>`:''}</p>`:''}<p><b>${u('read')}:</b> ${t(p.bacaan)}</p><p><b>${u('task')}:</b> ${t(p.tugas)}</p>`;
@@ -65,15 +66,20 @@ const after={
  penelitian(){const P=D.publikasi,y=years(P);
   chart('c1','bar',y,[{label:u('pub'),data:perYear(P,y)}],u('pub'));
   const ty=count(P,'jenis');chart('c2','doughnut',Object.keys(ty),[{data:Object.values(ty)}],u('type'));
-  const cy=years(D.publikasi);chart('c3','line',cy,[{label:u('cit'),data:cy.map(v=>P.filter(x=>x.tahun==v).reduce((a,x)=>a+(+x.sitasi||0),0))}],u('cit'));
-  const hy=years(D.hibah);chart('c4','bar',hy,[{label:'Rp (juta)',data:hy.map(v=>D.hibah.filter(x=>x.tahun==v).reduce((a,x)=>a+x.dana/1e6,0))}],'Hibah');
   const fy=$('#fy'),ft=$('#ft');fy.innerHTML=`<option value="">${u('year')}</option>`+y.map(v=>`<option>${v}</option>`).join('');ft.innerHTML=`<option value="">${u('type')}</option>`+Object.keys(ty).map(v=>`<option>${v}</option>`).join('');
   const go=()=>{const q=$('#q').value.toLowerCase(),r=P.filter(p=>(!fy.value||p.tahun==fy.value)&&(!ft.value||p.jenis==ft.value)&&(p.judul+p.kata_kunci).toLowerCase().includes(q));
    $('#list').innerHTML=r.map(p=>`<div class="item"><b>${p.judul}</b><br><span class="muted">${p.penulis} · ${p.jurnal} · ${p.tahun}</span> <span class="chip">${p.jenis}</span></div>`).join('')||`<p class="note">${u('empty')}</p>`};
   ['q','fy','ft'].forEach(i=>$('#'+i).oninput=go);go()},
  pengabdian(){const P=D.pengabdian,y=years(P),b=count(P,'bidang');chart('c1','bar',y,[{label:'#',data:perYear(P,y)}],u('pengabdian'));chart('c2','doughnut',Object.keys(b),[{data:Object.values(b)}],'Bidang')},
- bimbingan(){const B=D.bimbingan,y=years(B),st=[...new Set(B.map(x=>x.status))],s=st.map(v=>({label:v,data:y.map(a=>B.filter(x=>x.tahun==a&&x.status==v).length)}));s.stacked=true;
-  chart('c1','bar',y,s,'Status / '+u('year'));const j=count(B,'jenjang');chart('c2','doughnut',Object.keys(j),[{data:Object.values(j)}],'Jenjang')},
+ bimbingan(){const M=D.bimbingan,y=years(M),st=[...new Set(M.map(x=>x.status))],js=[...new Set(M.map(x=>x.jenjang))].sort();
+  const sets=st.map(v=>({label:v,data:y.map(a=>M.filter(x=>x.tahun==a&&x.status==v).length)}));sets.stacked=true;chart('c1','bar',y,sets,'Status / '+u('year'));
+  const opt=(ph,a)=>`<option value="">${ph}</option>`+a.map(v=>`<option>${v}</option>`).join('');
+  $('#fy').innerHTML=opt(u('year'),y);$('#fs').innerHTML=opt('Status',st);$('#fj').innerHTML=opt(lang=='id'?'Jenjang':'Level',js);
+  /* tandem1_* dan tandem2_* = pembimbing pendamping (maks. 2, institusi boleh berbeda) */
+  const tandem=b=>[1,2].filter(n=>b['tandem'+n+'_nama']).map(n=>`${b['tandem'+n+'_nama']}${b['tandem'+n+'_institusi']?' ('+b['tandem'+n+'_institusi']+')':''}`).join('; ');
+  const go=()=>{const q=$('#q').value.toLowerCase(),r=M.filter(b=>(!$('#fy').value||b.tahun==$('#fy').value)&&(!$('#fs').value||b.status==$('#fs').value)&&(!$('#fj').value||b.jenjang==$('#fj').value)&&(b.nama+b.topik).toLowerCase().includes(q));
+   $('#list').innerHTML=r.map(b=>{const t2=tandem(b);return `<div class="item"><b>${b.jenjang} · ${b.nama} · ${b.jenis} · ${b.tahun}</b> <span class="chip">${b.status}</span><br>${b.topik}${t2?`<br><span class="muted">${lang=='id'?'Pembimbing tandem':'Co-supervisors'}: ${t2}</span>`:''}</div>`}).join('')||`<p class="note">${u('empty')}</p>`};
+  ['q','fy','fs','fj'].forEach(i=>$('#'+i).oninput=go);go()},
  async ebook(id){const b=D.ebook.find(x=>x.id==id);if(!b)return;
   const md=window.markdownit({html:false,highlight:(c,l)=>l&&hljs.getLanguage(l)?hljs.highlight(c,{language:l}).value:''});
   const el=$('#md');el.innerHTML=md.render(await (await fetch(B+b.file)).text());
