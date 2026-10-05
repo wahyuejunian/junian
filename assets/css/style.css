@@ -45,3 +45,11 @@ footer{background:var(--hero);color:#CFD9EA;text-align:center;padding:22px;font-
 /* grafik 2 kolom di desktop, 1 kolom di HP */
 .charts{grid-template-columns:repeat(2,minmax(0,1fr))}
 @media(max-width:800px){.charts{grid-template-columns:1fr}}
+/* kartu mata kuliah + navigasi pertemuan di kiri */
+.course{display:block;text-decoration:none;color:var(--ink)}
+.course .cover{margin-bottom:12px}
+.cover small{font-weight:500;opacity:.85}
+.toc h3{margin:.8em 0 .3em}
+.toc a{padding:4px 8px;border-left:3px solid transparent;text-decoration:none;color:var(--ink)}
+.toc a.on{border-left-color:var(--orange);font-weight:700;color:var(--accent)}
+.book>section{min-width:0}
