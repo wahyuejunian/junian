@@ -1,3 +1,26 @@
-[{"id":"gf101","kode":"TG2101","sks":3,"semester":3,"nama":{"id":"Metode Gravitasi","en":"Gravity Method"},"deskripsi":{"id":"Dasar akuisisi dan interpretasi data gravitasi.","en":"Fundamentals of gravity acquisition and interpretation."},
-"cpmk":[{"id":"Menjelaskan prinsip medan gravitasi bumi","en":"Explain earth gravity field principles"},{"id":"Mengolah data gravitasi","en":"Process gravity data"}],
-"pertemuan":[{"topik":{"id":"Pengantar medan gravitasi","en":"Introduction to the gravity field"},"slide":"#","video":"#","bacaan":{"id":"Bab 1 modul","en":"Module chapter 1"},"tugas":{"id":"Latihan soal 1","en":"Exercise 1"}},{"topik":{"id":"Koreksi data gravitasi","en":"Gravity data corrections"},"slide":"#","bacaan":{"id":"Bab 2 modul","en":"Module chapter 2"},"tugas":{"id":"Latihan soal 2","en":"Exercise 2"}}]}]
+[
+ {
+  "id": "gf101",
+  "kode": "TG2101",
+  "nama": "Metode Gravitasi",
+  "nama_en": "Gravity Method",
+  "sks": 3,
+  "semester": 3,
+  "deskripsi": "Dasar akuisisi dan interpretasi data gravitasi.",
+  "deskripsi_en": "Fundamentals of gravity acquisition and interpretation.",
+  "cpmk": "Menjelaskan prinsip medan gravitasi bumi; Mengolah data gravitasi",
+  "cpmk_en": "Explain earth gravity field principles; Process gravity data"
+ },
+ {
+  "id": "gf102",
+  "kode": "TG2102",
+  "nama": "Metode Magnetik",
+  "nama_en": "Magnetic Method",
+  "sks": 3,
+  "semester": 4,
+  "deskripsi": "Dasar medan magnet bumi dan interpretasi anomali magnetik.",
+  "deskripsi_en": "Earth magnetic field and magnetic anomaly interpretation.",
+  "cpmk": "Menjelaskan medan magnet bumi; Mengolah data magnetik",
+  "cpmk_en": "Explain the earth magnetic field; Process magnetic data"
+ }
+]

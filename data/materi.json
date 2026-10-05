@@ -1,0 +1,30 @@
+[
+ {
+  "mk": "gf101",
+  "no": 1,
+  "topik": "Pengantar medan gravitasi",
+  "topik_en": "Introduction to the gravity field",
+  "slide": ""
+ },
+ {
+  "mk": "gf101",
+  "no": 2,
+  "topik": "Koreksi data gravitasi",
+  "topik_en": "Gravity data corrections",
+  "slide": ""
+ },
+ {
+  "mk": "gf102",
+  "no": 1,
+  "topik": "Medan magnet bumi",
+  "topik_en": "The earth's magnetic field",
+  "slide": ""
+ },
+ {
+  "mk": "gf102",
+  "no": 2,
+  "topik": "Anomali magnetik",
+  "topik_en": "Magnetic anomalies",
+  "slide": ""
+ }
+]

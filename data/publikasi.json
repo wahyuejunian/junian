@@ -8,7 +8,8 @@
   "peran": "Penulis pertama",
   "kata_kunci": "geolistrik; inversi; sesar",
   "kuartil": "Q3",
-  "sinta": "S2"
+  "sinta": "S2",
+  "doi": "10.1234/dummy.2022.001"
  },
  {
   "judul": "Karakterisasi reservoir panas bumi dengan magnetotelurik",
@@ -18,8 +19,9 @@
   "jenis": "Prosiding",
   "peran": "Kolaborator",
   "kata_kunci": "panas bumi; magnetotelurik; inversi",
-  "kuartil": "",
-  "sinta": ""
+  "kuartil": "Q2",
+  "sinta": "",
+  "doi": ""
  },
  {
   "judul": "Analisis anomali gravitasi cekungan Lampung",
@@ -30,7 +32,8 @@
   "peran": "Penulis pertama",
   "kata_kunci": "gravitasi; cekungan; Lampung",
   "kuartil": "",
-  "sinta": "S3"
+  "sinta": "S3",
+  "doi": "10.1234/dummy.2024.003"
  },
  {
   "judul": "Machine learning untuk klasifikasi litologi",
@@ -40,7 +43,8 @@
   "jenis": "Prosiding",
   "peran": "Kolaborator",
   "kata_kunci": "machine learning; litologi; inversi",
-  "kuartil": "",
-  "sinta": ""
+  "kuartil": "Q1",
+  "sinta": "",
+  "doi": ""
  }
 ]
