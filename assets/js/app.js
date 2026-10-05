@@ -6,6 +6,23 @@ let lang=localStorage.lang||'id', D={}, charts=[], live=false;
 /* Teks antarmuka dwibahasa. Isi data bilingual: {"id":"..","en":".."} */
 const UI={id:{home:'Beranda',profil:'Profil',penelitian:'Penelitian',pengabdian:'Pengabdian',bimbingan:'Bimbingan',kuliah:'Perkuliahan',ebook:'Ebook',proyek:'Proyek',kontak:'Kontak',cv:'Unduh CV',hubungi:'Hubungi',pub:'Publikasi',cit:'Sitasi',h:'h-index',mhs:'Mahasiswa bimbingan',prj:'Proyek',search:'Cari…',all:'Semua',baca:'Baca',unduh:'Unduh PDF',fail:'Data belum bisa dimuat. Menampilkan data lokal.',upd:'Terakhir diperbarui',src:'Sumber',sheet:'Google Sheets',local:'data lokal',meet:'Pertemuan',topic:'Topik',read:'Bacaan',task:'Tugas',send:'Kirim pesan',year:'Tahun',type:'Jenis',back:'Kembali',empty:'Tidak ada data yang cocok.'},
  en:{home:'Home',profil:'Profile',penelitian:'Research',pengabdian:'Community service',bimbingan:'Supervision',kuliah:'Teaching',ebook:'Ebooks',proyek:'Projects',kontak:'Contact',cv:'Download CV',hubungi:'Contact me',pub:'Publications',cit:'Citations',h:'h-index',mhs:'Supervised students',prj:'Projects',search:'Search…',all:'All',baca:'Read',unduh:'Download PDF',fail:'Data could not be loaded. Showing local data.',upd:'Last updated',src:'Source',sheet:'Google Sheets',local:'local data',meet:'Session',topic:'Topic',read:'Reading',task:'Assignment',send:'Send message',year:'Year',type:'Type',back:'Back',empty:'No matching data.'}};
+/* DOI: terima "10.xxxx/abc" atau URL penuh */
+const doiUrl=d=>!d?'':/^https?:/i.test(d)?d:'https://doi.org/'+String(d).replace(/^doi:\s*/i,'').trim();
+/* Slide dari Google Slides (publish to web / link berbagi) atau PDF Google Drive -> URL embed */
+const slideSrc=x=>{x=String(x||'');let m;
+ if(m=x.match(/docs\.google\.com\/presentation\/d\/e\/([^/]+)/))return `https://docs.google.com/presentation/d/e/${m[1]}/embed?start=false&loop=false&delayms=60000`;
+ if(m=x.match(/docs\.google\.com\/presentation\/d\/([^/]+)/))return `https://docs.google.com/presentation/d/${m[1]}/embed?start=false&loop=false&delayms=60000`;
+ if(m=x.match(/drive\.google\.com\/file\/d\/([^/?]+)/)||x.match(/drive\.google\.com\/(?:open|uc)\?(?:[^#]*&)?id=([^&]+)/))return `https://drive.google.com/file/d/${m[1]}/preview`;
+ return x};
+/* Tab matakuliah = 1 baris per mata kuliah (kolom x_en = terjemahan Inggris, opsional).
+   Kolom data_url = link CSV tab pertemuan milik mata kuliah itu; baru diambil saat halamannya dibuka. */
+const bi=(r,k)=>({id:r[k],en:r[k+'_en']||r[k]});
+function build(){D.mk=D.matakuliah.map(c=>{const e=String(c.cpmk_en||'').split(';');return {...c,nama:bi(c,'nama'),deskripsi:bi(c,'deskripsi'),
+ cpmk:String(c.cpmk||'').split(';').map((x,i)=>({id:x.trim(),en:(e[i]||x).trim()})).filter(x=>x.id)}})}
+async function loadMeet(c){if(c.pertemuan)return;let rows=null;
+ if(c.data_url&&!String(c.data_url).includes('DUMMY')){try{const r=await fetch(c.data_url);if(r.ok)rows=csv(await r.text())}catch(e){}}
+ if(!rows)rows=(D.materi||[]).filter(p=>p.mk==c.id); /* tab materi: kolom mk, no, topik, slide */
+ c.pertemuan=rows.filter(p=>p.no!==''&&p.no!=null).sort((a,b)=>a.no-b.no).map(p=>({...p,topik:bi(p,'topik')}))}
 const u=k=>UI[lang][k]||k, t=o=>o&&typeof o==='object'?(o[lang]||o.id):o;
 const cv=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 
@@ -17,16 +34,16 @@ async function load(n){const url=(D.site?.sheets||{})[n];
  return (await fetch(`${B}data/${n}.json`)).json()}
 async function init(){app.innerHTML='<div class="sk"></div>'.repeat(4);
  D.site=await (await fetch(B+'data/site.json')).json();
- for(const n of['publikasi','hibah','pengabdian','bimbingan','matakuliah','ebook','proyek'])D[n]=await load(n).catch(()=>[]);
- chrome();route()}
+ for(const n of['publikasi','hibah','pengabdian','bimbingan','matakuliah','materi','ebook','proyek'])D[n]=await load(n).catch(()=>[]);
+ build();chrome();route()}
 
 /* ---- Grafik (warna mengikuti tema) ---- */
 const count=(a,k)=>a.reduce((m,x)=>(m[x[k]]=(m[x[k]]||0)+1,m),{});
 function chart(id,type,labels,sets,title){const c=document.getElementById(id);if(!c)return;
- const pal=['#F28C28','#3B82C4','#1FA8A0','#8A6FD1','#E2556B'],ink=cv('--ink'),line=cv('--line');
- charts.push(new Chart(c,{type,data:{labels,datasets:sets.map((s,i)=>({label:s.label,data:s.data,backgroundColor:type=='line'?pal[i]:(type=='doughnut'?pal:pal[i]),borderColor:pal[i],tension:.3}))},
+ const rd=type=='doughnut'||type=='pie',pal=['#F28C28','#3B82C4','#1FA8A0','#8A6FD1','#E2556B','#E2B93B','#7C8DA6'],ink=cv('--ink'),line=cv('--line');
+ charts.push(new Chart(c,{type,data:{labels,datasets:sets.map((s,i)=>({label:s.label,data:s.data,backgroundColor:type=='line'?pal[i]:(rd?pal:pal[i]),borderColor:pal[i],tension:.3}))},
  options:{maintainAspectRatio:false,plugins:{title:{display:true,text:title,color:ink},legend:{labels:{color:ink}}},
- scales:type=='doughnut'?{}:{x:{ticks:{color:ink},grid:{color:line},stacked:sets.stacked},y:{ticks:{color:ink},grid:{color:line},stacked:sets.stacked}}}}))}
+ scales:rd?{}:{x:{ticks:{color:ink},grid:{color:line},stacked:sets.stacked},y:{ticks:{color:ink},grid:{color:line},stacked:sets.stacked}}}}))}
 const years=a=>[...new Set(a.map(x=>x.tahun))].sort();
 const perYear=(a,y)=>y.map(v=>a.filter(x=>x.tahun==v).length);
 const box=(id)=>`<div class="card"><canvas id="${id}" role="img" aria-label="${id}"></canvas></div>`;
@@ -44,16 +61,18 @@ const V={
   <div class="stats">${st.map(([n,k])=>`<div class="stat"><b data-n="${n}">0</b>${u(k)}</div>`).join('')}</div>
   <p>${(s.keahlian||[]).map(k=>`<span class="chip">${t(k)}</span>`).join('')}</p>`},
  profil(){const s=D.site;return `<h1>${u('profil')}</h1><p>${t(s.bio)}</p><h2>${lang=='id'?'Pendidikan':'Education'}</h2>${s.pendidikan.map(e=>`<div class="item"><b>${e.jenjang}</b> — ${e.kampus} <span class="muted">${e.tahun}</span></div>`).join('')}<h2>Link</h2>${links(s.links)}`},
- penelitian(){return `<h1>${u('penelitian')}</h1>${stamp()}<div class="charts">${box('c1')}${box('c2')}</div>
+ penelitian(){return `<h1>${u('penelitian')}</h1>${stamp()}<div class="charts">${box('c1')}${box('c2')}${box('c3')}${box('c4')}</div>
   <h2>${lang=='id'?'Kata kunci':'Keywords'}</h2><div class="cloud" id="cloud"></div><p id="sum" class="muted"></p>
   <div class="tools"><input id="q" type="search" placeholder="${u('search')}" aria-label="${u('search')}"><select id="fy" aria-label="${u('year')}"></select><select id="ft" aria-label="${u('type')}"></select><select id="fp" aria-label="Peran"></select><select id="fq" aria-label="Peringkat"></select></div><div id="list"></div><h2>Hibah</h2>${D.hibah.map(h=>`<div class="item"><b>${h.judul}</b><br><span class="muted">${h.skema} · ${h.tahun} · ${h.peran}</span></div>`).join('')}`},
- pengabdian(){return `<h1>${u('pengabdian')}</h1>${stamp()}<div class="charts">${box('c1')}${box('c2')}</div><div class="grid">${D.pengabdian.map(p=>`<article class="card"><h3>${p.judul}</h3><p class="muted">${p.mitra} · ${p.lokasi} · ${p.tahun}</p><span class="chip">${p.bidang}</span></article>`).join('')}</div>`},
+ pengabdian(){return `<h1>${u('pengabdian')}</h1>${stamp()}<div class="charts">${box('c1')}${box('c2')}</div>
+  <div class="tools"><input id="q" type="search" placeholder="${u('search')}" aria-label="${u('search')}"><select id="fy" aria-label="${u('year')}"></select><select id="fb" aria-label="Bidang"></select></div><div id="list"></div>`},
  bimbingan(){return `<h1>${u('bimbingan')}</h1>${stamp()}<div class="charts">${box('c1')}</div>
   <div class="tools"><input id="q" type="search" placeholder="${u('search')}" aria-label="${u('search')}"><select id="fy" aria-label="${u('year')}"></select><select id="fs" aria-label="Status"></select><select id="fj" aria-label="Level"></select></div><div id="list"></div>`},
- kuliah(id,m){const c=D.matakuliah.find(x=>x.id==id);
-  if(!c)return `<h1>${u('kuliah')}</h1><div class="grid">${D.matakuliah.map(c=>`<a class="card" href="${H('mata-kuliah','?id='+c.id)}"><h3>${t(c.nama)}</h3><p class="muted">${c.kode} · ${c.sks} SKS · ${lang=='id'?'Semester':'Semester'} ${c.semester}</p><p>${t(c.deskripsi)}</p></a>`).join('')}</div>`;
-  const p=c.pertemuan[m-1];if(p)return `<p><a href="${H('mata-kuliah','?id='+id)}">← ${t(c.nama)}</a></p><h1>${u('meet')} ${m}</h1><h2>${t(p.topik)}</h2>${p.slide?`<p><a href="${p.slide}">Slide</a>${p.video?` · <a href="${p.video}">Video</a>`:''}</p>`:''}<p><b>${u('read')}:</b> ${t(p.bacaan)}</p><p><b>${u('task')}:</b> ${t(p.tugas)}</p>`;
-  return `<p><a href="${H('perkuliahan')}">← ${u('kuliah')}</a></p><h1>${t(c.nama)}</h1><p class="muted">${c.kode} · ${c.sks} SKS</p><p>${t(c.deskripsi)}</p><h2>CPMK</h2><ul>${c.cpmk.map(x=>`<li>${t(x)}</li>`).join('')}</ul><h2>${u('meet')}</h2>${c.pertemuan.map((p,i)=>`<div class="item"><a href="${H('pertemuan','?id='+id+'&p='+(i+1))}">${i+1}. ${t(p.topik)}</a></div>`).join('')}`},
+ kuliah(id,m){const c=D.mk.find(x=>x.id==id);
+  if(!c)return `<h1>${u('kuliah')}</h1><div class="grid">${D.mk.map(c=>`<a class="card" href="${H('mata-kuliah','?id='+c.id)}"><h3>${t(c.nama)}</h3><p class="muted">${c.kode} · ${c.sks} SKS · Semester ${c.semester}</p><p>${t(c.deskripsi)}</p></a>`).join('')}</div>`;
+  const p=m&&c.pertemuan.find(x=>x.no==m);
+  if(p)return `<p><a href="${H('mata-kuliah','?id='+id)}">← ${t(c.nama)}</a></p><h1>${u('meet')} ${p.no}</h1><h2>${t(p.topik)}</h2>${p.slide?`<div class="slide"><iframe src="${slideSrc(p.slide)}" title="Slide ${p.no}" allowfullscreen loading="lazy" referrerpolicy="no-referrer"></iframe></div>`:`<p class="note">${lang=='id'?'Slide belum tersedia.':'Slides not available yet.'}</p>`}`;
+  return `<p><a href="${H('perkuliahan')}">← ${u('kuliah')}</a></p><h1>${t(c.nama)}</h1><p class="muted">${c.kode} · ${c.sks} SKS</p><p>${t(c.deskripsi)}</p><h2>CPMK</h2><ul>${c.cpmk.map(x=>`<li>${t(x)}</li>`).join('')}</ul><h2>${u('meet')}</h2>${c.pertemuan.map(p=>`<div class="item"><a href="${H('pertemuan','?id='+id+'&p='+p.no)}">${p.no}. ${t(p.topik)}</a></div>`).join('')}`},
  ebook(id){const b=D.ebook.find(x=>x.id==id);
   if(!b)return `<h1>${u('ebook')}</h1><div class="grid">${D.ebook.map(b=>`<article class="card"><div class="cover">${t(b.judul)}</div><p>${t(b.deskripsi)}</p>${b.tag.map(x=>`<span class="chip">${x}</span>`).join('')}<p><a class="chip" href="${H('baca','?id='+b.id)}">${u('baca')}</a> <a class="chip" href="${b.pdf}">${u('unduh')}</a></p></article>`).join('')}</div>`;
   return `<p><a href="${H('ebook')}">← ${u('ebook')}</a></p><div class="book"><nav class="toc" id="toc" aria-label="TOC"></nav><article class="md" id="md"></article></div>`},
@@ -67,6 +86,11 @@ const after={
  penelitian(){const P=D.publikasi,y=years(P);
   chart('c1','bar',y,[{label:u('pub'),data:perYear(P,y)}],u('pub'));
   const ty=count(P,'jenis');chart('c2','doughnut',Object.keys(ty),[{data:Object.values(ty)}],u('type'));
+  /* pie kuartil (Q1-Q4) dan indeks SINTA (S1-S6); hanya publikasi yang kolomnya terisi */
+  const pie=k=>{const m=count(P.filter(x=>x[k]),k),ks=Object.keys(m).sort();return [ks,ks.map(v=>m[v])]};
+  const [qk,qv]=pie('kuartil'),[sk,sv]=pie('sinta');
+  chart('c3','pie',qk,[{data:qv}],lang=='id'?'Kuartil jurnal (Scopus)':'Journal quartile (Scopus)');
+  chart('c4','pie',sk,[{data:sv}],lang=='id'?'Indeks SINTA':'SINTA index');
   const fy=$('#fy'),ft=$('#ft'),fp=$('#fp'),fq=$('#fq'),pr=[...new Set(P.map(x=>x.peran).filter(Boolean))];
   fy.innerHTML=`<option value="">${u('year')}</option>`+y.map(v=>`<option>${v}</option>`).join('');ft.innerHTML=`<option value="">${u('type')}</option>`+Object.keys(ty).map(v=>`<option>${v}</option>`).join('');fp.innerHTML=`<option value="">${lang=='id'?'Peran':'Role'}</option>`+pr.map(v=>`<option>${v}</option>`).join('');
   /* kuartil (Q1-Q4) dan sinta (S1-S6) bersifat opsional */
@@ -78,10 +102,14 @@ const after={
   const ks=Object.values(kc).sort((a,b)=>b.n-a.n||a.k.localeCompare(b.k)),mx=ks.length?ks[0].n:1,mn=ks.length?ks[ks.length-1].n:1;let kw='';
   const cloud=()=>{$('#cloud').innerHTML=ks.map(o=>{const on=kw==o.k.toLowerCase();return `<button type="button" class="${on?'on':''}" aria-pressed="${on}" style="font-size:${(0.85+(mx==mn?.4:(o.n-mn)/(mx-mn))*1.5).toFixed(2)}rem">${o.k}<sup>${o.n}</sup></button>`}).join('')};
   const go=()=>{const q=$('#q').value.toLowerCase(),r=P.filter(p=>(!fy.value||p.tahun==fy.value)&&(!ft.value||p.jenis==ft.value)&&(!fp.value||p.peran==fp.value)&&(!fq.value||p.kuartil==fq.value||p.sinta==fq.value)&&(!kw||kws(p).some(k=>k.toLowerCase()==kw))&&(p.judul+p.kata_kunci).toLowerCase().includes(q));
-   $('#list').innerHTML=r.map(p=>`<div class="item"><b>${p.judul}</b><br><span class="muted">${p.penulis} · ${p.jurnal} · ${p.tahun}</span> <span class="chip">${p.jenis}</span>${p.peran?`<span class="chip ${p.peran=='Penulis pertama'?'first':''}">${p.peran}</span>`:''}${p.kuartil?`<span class="chip rank">${p.kuartil}</span>`:''}${p.sinta?`<span class="chip rank">${p.sinta}</span>`:''}</div>`).join('')||`<p class="note">${u('empty')}</p>`};
+   $('#list').innerHTML=r.map(p=>`<div class="item"><b>${p.doi?`<a href="${doiUrl(p.doi)}" target="_blank" rel="noopener">${p.judul} ↗</a>`:p.judul}</b><br><span class="muted">${p.penulis} · ${p.jurnal} · ${p.tahun}</span> <span class="chip">${p.jenis}</span>${p.peran?`<span class="chip ${p.peran=='Penulis pertama'?'first':''}">${p.peran}</span>`:''}${p.kuartil?`<span class="chip rank">${p.kuartil}</span>`:''}${p.sinta?`<span class="chip rank">${p.sinta}</span>`:''}</div>`).join('')||`<p class="note">${u('empty')}</p>`};
   $('#cloud').onclick=e=>{const b=e.target.closest('button');if(!b)return;const k=b.firstChild.textContent.toLowerCase();kw=kw==k?'':k;cloud();go()};
   ['q','fy','ft','fp','fq'].forEach(i=>$('#'+i).oninput=go);cloud();go()},
- pengabdian(){const P=D.pengabdian,y=years(P),b=count(P,'bidang');chart('c1','bar',y,[{label:'#',data:perYear(P,y)}],u('pengabdian'));chart('c2','doughnut',Object.keys(b),[{data:Object.values(b)}],'Bidang')},
+ pengabdian(){const P=D.pengabdian,y=years(P),b=count(P,'bidang');chart('c1','bar',y,[{label:'#',data:perYear(P,y)}],u('pengabdian'));chart('c2','doughnut',Object.keys(b),[{data:Object.values(b)}],'Bidang');
+  const opt=(ph,a)=>`<option value="">${ph}</option>`+a.map(v=>`<option>${v}</option>`).join('');$('#fy').innerHTML=opt(u('year'),y);$('#fb').innerHTML=opt('Bidang',Object.keys(b));
+  const go=()=>{const q=$('#q').value.toLowerCase(),r=P.filter(p=>(!$('#fy').value||p.tahun==$('#fy').value)&&(!$('#fb').value||p.bidang==$('#fb').value)&&(p.judul+p.mitra+p.lokasi).toLowerCase().includes(q));
+   $('#list').innerHTML=r.map(p=>`<div class="item"><b>${p.judul}</b><br><span class="muted">${p.mitra} · ${p.lokasi} · ${p.tahun}</span> <span class="chip">${p.bidang}</span></div>`).join('')||`<p class="note">${u('empty')}</p>`};
+  ['q','fy','fb'].forEach(i=>$('#'+i).oninput=go);go()},
  bimbingan(){const M=D.bimbingan,y=years(M),st=[...new Set(M.map(x=>x.status))],js=[...new Set(M.map(x=>x.jenjang))].sort();
   const sets=st.map(v=>({label:v,data:y.map(a=>M.filter(x=>x.tahun==a&&x.status==v).length)}));sets.stacked=true;chart('c1','bar',y,sets,'Status / '+u('year'));
   const opt=(ph,a)=>`<option value="">${ph}</option>`+a.map(v=>`<option>${v}</option>`).join('');
@@ -103,6 +131,7 @@ function chrome(){$('#menu').innerHTML=nav.map(k=>`<li><a data-k="${k}" href="${
 /* Setiap file HTML punya <body data-page="..."> yang menentukan tampilan; parameter ?id= dan ?p= dibaca dari URL */
 async function route(){charts.forEach(c=>c.destroy());charts=[];const q=new URLSearchParams(location.search),pg=document.body.dataset.page||'home',
  k={perkuliahan:'kuliah','mata-kuliah':'kuliah',pertemuan:'kuliah',baca:'ebook'}[pg]||pg,a=q.get('id'),b=q.get('p');
+ if(k=='kuliah'&&a){const c=D.mk.find(x=>x.id==a);if(c){app.innerHTML='<div class="sk"></div>'.repeat(3);await loadMeet(c)}}
  app.innerHTML=V[k](a,b);document.querySelectorAll('#menu a').forEach(l=>l.classList.toggle('on',l.dataset.k==k));
  $('#menu').classList.remove('open');if(after[k])await after[k](a)}
 
