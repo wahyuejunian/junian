@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Forward Modelling Magnetik 2D</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Spectral:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #f3f5f6;
+    --panel: #ffffff;
+    --ink: #14202b;
+    --muted: #5b6b78;
+    --line: #d5dde2;
+    --grid: #e3e9ed;
+    --accent: #0b6e7a;
+    --accent-soft: #d6ebee;
+    --warm: #b4561b;
+    --font-body: "Instrument Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --font-head: "Spectral", Georgia, "Times New Roman", serif;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #10171d;
+      --panel: #172029;
+      --ink: #e7eef2;
+      --muted: #93a4b1;
+      --line: #2a3745;
+      --grid: #212d38;
+      --accent: #5cc3d1;
+      --accent-soft: #1d3a42;
+      --warm: #f08a3c;
+      color-scheme: dark;
+    }
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.55;
+  }
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 28px 20px 56px; }
+  header { max-width: 760px; margin-bottom: 26px; }
+  h1 {
+    font-family: var(--font-head);
+    font-weight: 600;
+    font-size: clamp(28px, 4.2vw, 40px);
+    line-height: 1.12;
+    letter-spacing: -0.01em;
+    margin: 0 0 10px;
+  }
+  header p { margin: 0; color: var(--muted); max-width: 62ch; }
+
+  .layout { display: grid; grid-template-columns: 330px minmax(0, 1fr); gap: 28px; align-items: start; }
+  @media (max-width: 880px) { .layout { grid-template-columns: 1fr; } }
+
+  .controls { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 6px 18px 18px; }
+  fieldset { border: 0; border-top: 1px solid var(--line); margin: 0; padding: 16px 0 4px; min-inline-size: 0; }
+  fieldset:first-of-type { border-top: 0; }
+  legend { font-family: var(--font-head); font-weight: 600; font-size: 17px; padding: 0; float: left; width: 100%; margin-bottom: 10px; }
+  legend + * { clear: both; }
+  .row { margin-bottom: 12px; }
+  .row .top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .row label { font-size: 14px; }
+  .row output { font-variant-numeric: tabular-nums; color: var(--accent); font-weight: 600; font-size: 14px; }
+  input[type=range] { width: 100%; margin: 4px 0 0; accent-color: var(--accent); }
+  fieldset:disabled { opacity: 0.45; }
+  .check { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; font-size: 14px; }
+  .check input { accent-color: var(--accent); width: 16px; height: 16px; margin: 0; }
+  .btns { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 4px; }
+  button {
+    font: inherit; font-size: 14px; color: var(--ink); background: transparent;
+    border: 1px solid var(--line); border-radius: 4px; padding: 7px 12px; cursor: pointer;
+  }
+  button:hover { border-color: var(--accent); color: var(--accent); }
+  button.primary { background: var(--accent); border-color: var(--accent); color: var(--paper); }
+  button.primary:hover { color: var(--paper); filter: brightness(1.08); }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .charts h2 { font-family: var(--font-head); font-size: 18px; font-weight: 600; margin: 0 0 6px; }
+  .chart-block { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 14px 14px 8px; margin-bottom: 18px; }
+  canvas { display: block; width: 100%; touch-action: pan-y; }
+  .stats { display: flex; flex-wrap: wrap; gap: 6px 26px; margin: 0 0 18px; padding: 0; list-style: none; }
+  .stats li { font-size: 14px; color: var(--muted); }
+  .stats b { color: var(--ink); font-variant-numeric: tabular-nums; font-weight: 600; }
+  #hover { margin: 0 0 4px; font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums; min-height: 1.5em; }
+
+  .notes { margin-top: 34px; max-width: 760px; }
+  .notes h2 { font-family: var(--font-head); font-size: 22px; margin: 0 0 8px; }
+  .notes p, .notes li { color: var(--ink); }
+  .notes ul { padding-left: 20px; }
+  .eq { font-family: "Cambria Math", "STIX Two Math", Georgia, serif; background: var(--panel); border: 1px solid var(--line);
+        border-radius: 4px; padding: 10px 14px; margin: 10px 0; overflow-x: auto; white-space: nowrap; }
+  small { color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Forward Modelling Magnetik 2D</h1>
+    <p>Geser parameter prisma dan medan geomagnetik, lihat perubahan respons anomali total field (ΔT).</p>
+  </header>
+
+  <div class="layout">
+    <form class="controls" id="controls" onsubmit="return false">
+      <fieldset>
+        <legend>Contoh model</legend>
+        <div class="btns">
+          <button type="button" id="preset1">Model 1: satu prisma</button>
+          <button type="button" id="preset2">Model 2: dua prisma</button>
+        </div>
+      </fieldset>
+      <fieldset id="fs-field"><legend>Medan geomagnetik</legend></fieldset>
+      <fieldset id="fs-p1"><legend>Prisma horizontal</legend></fieldset>
+      <fieldset id="fs-p2"><legend>Prisma miring</legend></fieldset>
+      <fieldset id="fs-noise">
+        <legend>Noise dan tampilan</legend>
+        <div id="noise-rows"></div>
+        <label class="check"><input type="checkbox" id="showParts"> Tampilkan kontribusi tiap prisma</label>
+        <div class="btns"><button type="button" id="reroll">Acak ulang noise</button></div>
+      </fieldset>
+    </form>
+
+    <main class="charts">
+      <div class="chart-block">
+        <h2>Anomali total field di permukaan</h2>
+        <canvas id="c1" role="img" aria-label="Grafik anomali magnetik terhadap jarak"></canvas>
+      </div>
+      <div class="chart-block">
+        <h2>Model suseptibilitas bawah permukaan</h2>
+        <canvas id="c2" role="img" aria-label="Penampang kontras suseptibilitas terhadap jarak dan kedalaman"></canvas>
+      </div>
+      <p id="hover">Arahkan kursor ke salah satu grafik untuk membaca nilainya.</p>
+      <ul class="stats" id="stats"></ul>
+    </main>
+  </div>
+
+  <section class="notes">
+    <h2>Cara membaca</h2>
+    <ul>
+      <li>Garis tebal adalah anomali ΔT tanpa noise, titik adalah data dengan noise Gaussian (simpangan baku = persentase noise × amplitudo maksimum).</li>
+      <li>Beda utama dengan gravitasi: respons magnetik bergantung arah. Ubah <b>inklinasi</b> atau <b>azimuth profil</b>: kurva bergeser, berbalik tanda, dan di kutub magnet (I = ±90°) anomali menjadi simetris positif di atas tubuh bijih — dasar metode reduksi ke kutub.</li>
+      <li>Suseptibilitas negatif memberi anomali negatif. Makin dalam sumber, anomali meluruh jauh lebih cepat daripada gravitasi (∝ 1/d² vs 1/d), sehingga magnetik peka terhadap sumber dangkal.</li>
+    </ul>
+    <div class="eq">M = (B₀/μ₀)·χ·L̂ , &nbsp; ΔT = H<sub>x</sub>L<sub>x</sub> + H<sub>z</sub>L<sub>z</sub> (nT)</div>
+    <small>Kernel: integral analitik persegi panjang (Telford dkk.) pada grid sel 100 m × 100 m, penampang 8 km × 2 km.</small>
+  </section>
+</div>
+
+<script>
+// ==PHYSICS-START
+const MU0 = 1.25663706e-6, NT = 1e9;              // SI, keluaran nT
+const NX = 80, NZ = 20, DX = 100, DXKM = 0.1;     // sel 100 m, grid 8 km x 2 km
+const M = NX * NZ;
+const xobs = Float64Array.from({ length: NX }, (_, i) => (i + 0.5) * DX);
+
+// fungsi bantu integral rectangle; xi = x - x_obs, z = kedalaman (ke bawah positif)
+function Fm(xi, z) { const r2 = xi * xi + z * z; return r2 > 0 ? -0.5 * Math.log(r2) : 0; }
+function Gm(xi, z) { const r2 = xi * xi + z * z; return r2 > 0 ? z * Math.atan2(xi, z) + 0.5 * xi * Math.log(r2) : 0; }
+
+// KU[j*NX+i], KV[j*NX+i]: U=∫∫u/r³ dx dz dan V=∫∫w/r³ dx dz sel j dilihat dari titik i (tanpa dimensi)
+// u = x_sel − x_titik, w = z_sel (titik ukur di permukaan)
+function buildKernel() {
+  const KU = new Float64Array(M * NX), KV = new Float64Array(M * NX);
+  for (let iz = 0; iz < NZ; iz++) {
+    const z1 = iz * DX, z2 = (iz + 1) * DX;
+    for (let ix = 0; ix < NX; ix++) {
+      const j = iz * NX + ix, x1 = ix * DX, x2 = (ix + 1) * DX;
+      for (let i = 0; i < NX; i++) {
+        const a = x1 - xobs[i], b = x2 - xobs[i];
+        const dFdx = Fm(b, z2) - Fm(a, z2) - Fm(b, z1) + Fm(a, z1);
+        const dGdx = Gm(b, z2) - Gm(a, z2) - Gm(b, z1) + Gm(a, z1);
+        const dFdz = Fm(b, z2) - Fm(b, z1) - Fm(a, z2) + Fm(a, z1);
+        KU[j * NX + i] = dGdx - z1 * dFdx;   // U
+        KV[j * NX + i] = -dFdz + a * dFdx;   // V
+      }
+    }
+  }
+  return { KU, KV };
+}
+
+function fillCell(m, row, col, chi) {
+  if (row < 0 || row >= NZ || col < 0 || col >= NX) return;
+  m[row * NX + col] = chi;
+}
+
+// p: {top, thick, width, cx, chi, dip}  (km, SI)
+function buildPrism(p, inclined) {
+  const m = new Float64Array(M);
+  const r0 = Math.round(p.top / DXKM);
+  const nt = Math.max(1, Math.round(p.thick / DXKM));
+  const nw = Math.max(1, Math.round(p.width / DXKM));
+  const c0 = Math.round((p.cx - p.width / 2) / DXKM);
+  for (let k = 0; k < nt; k++) {
+    const shift = inclined ? Math.round(p.dip * k) : 0;
+    for (let w = 0; w < nw; w++) fillCell(m, r0 + k, c0 + shift + w, p.chi);
+  }
+  return m;
+}
+
+// Medan terinduksi sejajar L̂: M_vec = (B0/mu0)*chi*L. Anomali sumbu-x/z per satuan chi:
+// Hx = k*(Lx*V − Lz*U), Hz = −k*(Lx*U + Lz*V), k = mu0/(4pi)*B0(nT→T)*NT
+// ΔT = proyeksi pada L̂: ΔT = Hx*Lx + Hz*Lz
+function forwardTI(U_, V_, m, B0, Lx, Lz) {
+  const d = new Float64Array(NX);
+  const k = B0 * 1e-9 / (4 * Math.PI) * NT;                    // (mu0/4π)*(B0/μ0)*1e9 = B0[nT]/(4π)
+  for (let j = 0; j < M; j++) {
+    const v = m[j];
+    if (v === 0) continue;
+    const base = j * NX;
+    for (let i = 0; i < NX; i++) {
+      const U = U_[base + i], V = V_[base + i];
+      const Hx = Lx * V - Lz * U;                              // per satuan (B0/μ0·chi)
+      const Hz = -(Lx * U + Lz * V);
+      d[i] += k * v * (Hx * Lx + Hz * Lz);
+    }
+  }
+  return d;
+}
+// ==PHYSICS-END
+
+// ---------- konfigurasi kontrol ----------
+const DEF1 = { top: 0.4, thick: 0.5, width: 0.9, cx: 4.0, chi: 0.5 };
+const DEF2 = { top: 0.4, thick: 0.6, width: 0.3, cx: 5.45, chi: 0.3, dip: 1 };
+const DEFF = { b0: 50000, inc: -60, az: 0 };
+const SPECF = [
+  { key: 'b0',  label: 'Medan bumi B₀ (nT)',       min: 20000, max: 70000, step: 1000 },
+  { key: 'inc', label: 'Inklinasi I (derajat)',     min: -90,   max: 90,   step: 5 },
+  { key: 'az',  label: 'Azimuth profil A (derajat)', min: 0,    max: 180,  step: 5 },
+];
+const SPEC1 = [
+  { key: 'top',   label: 'Kedalaman puncak (km)', min: 0,    max: 1.8, step: 0.1 },
+  { key: 'thick', label: 'Tebal (km)',            min: 0.1,  max: 1.6, step: 0.1 },
+  { key: 'width', label: 'Lebar (km)',            min: 0.1,  max: 3,   step: 0.1 },
+  { key: 'cx',    label: 'Posisi tengah x (km)',  min: 0.5,  max: 7.5, step: 0.05 },
+  { key: 'chi',   label: 'Suseptibilitas χ (SI)', min: -1,   max: 1,   step: 0.05 },
+];
+const SPEC2 = SPEC1.concat([{ key: 'dip', label: 'Geser per lapisan (sel)', min: -2, max: 2, step: 0.5 }]);
+const SPECN = [{ key: 'noise', label: 'Noise (% amplitudo maks)', min: 0, max: 15, step: 0.5 }];
+
+const state = { p1on: true, p2on: false, p1: { ...DEF1 }, p2: { ...DEF2 }, f: { ...DEFF }, noise: 5, seed: 7, hover: null };
+const inputs = {};
+
+function decimals(step) { const s = String(step); return s.includes('.') ? s.split('.')[1].length : 0; }
+
+function addSliders(container, spec, group, obj) {
+  spec.forEach(s => {
+    const id = group + '-' + s.key;
+    const row = document.createElement('div'); row.className = 'row';
+    const top = document.createElement('div'); top.className = 'top';
+    const lab = document.createElement('label'); lab.htmlFor = id; lab.textContent = s.label;
+    const out = document.createElement('output'); out.htmlFor = id;
+    top.append(lab, out);
+    const inp = document.createElement('input');
+    inp.type = 'range'; inp.id = id; inp.min = s.min; inp.max = s.max; inp.step = s.step;
+    inp.addEventListener('input', () => {
+      const v = parseFloat(inp.value);
+      if (group === 'n') state.noise = v;
+      else if (group === 'f') state.f[s.key] = v;
+      else state[group][s.key] = v;
+      out.textContent = v.toFixed(decimals(s.step));
+      update();
+    });
+    row.append(top, inp); container.append(row);
+    inputs[id] = { inp, out, spec: s, group };
+  });
+}
+
+function syncInputs() {
+  Object.values(inputs).forEach(({ inp, out, spec, group }) => {
+    const v = group === 'n' ? state.noise : group === 'f' ? state.f[spec.key] : state[group][spec.key];
+    inp.value = v; out.textContent = Number(v).toFixed(decimals(spec.step));
+  });
+}
+
+addSliders(document.getElementById('fs-field'), SPECF, 'f');
+addSliders(document.getElementById('fs-p1'), SPEC1, 'p1');
+addSliders(document.getElementById('fs-p2'), SPEC2, 'p2');
+addSliders(document.getElementById('noise-rows'), SPECN, 'n');
+
+// kotak centang untuk mengaktifkan prisma
+function addToggle(fsId, key, text) {
+  const fs = document.getElementById(fsId);
+  const lab = document.createElement('label'); lab.className = 'check';
+  const cb = document.createElement('input'); cb.type = 'checkbox'; cb.id = 'on-' + key;
+  cb.addEventListener('change', () => { state[key] = cb.checked; applyDisabled(); update(); });
+  lab.append(cb, document.createTextNode(text));
+  const legend = fs.querySelector('legend');
+  const wrap = document.createElement('div'); wrap.className = 'toggle-wrap'; wrap.append(lab);
+  legend.after(wrap);
+}
+addToggle('fs-p1', 'p1on', 'Aktif');
+addToggle('fs-p2', 'p2on', 'Aktif');
+
+function applyDisabled() {
+  ['p1', 'p2'].forEach(g => {
+    const on = state[g + 'on'];
+    Object.values(inputs).filter(o => o.group === g).forEach(o => { o.inp.disabled = !on; o.inp.closest('.row').style.opacity = on ? 1 : 0.45; });
+  });
+}
+
+function setPreset(n) {
+  state.p1 = { ...DEF1 }; state.p2 = { ...DEF2 }; state.f = { ...DEFF };
+  state.p1on = true; state.p2on = n === 2;
+  document.getElementById('on-p1on').checked = state.p1on;
+  document.getElementById('on-p2on').checked = state.p2on;
+  syncInputs(); applyDisabled(); update();
+}
+document.getElementById('preset1').addEventListener('click', () => setPreset(1));
+document.getElementById('preset2').addEventListener('click', () => setPreset(2));
+
+// ---------- noise ----------
+function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function unitNormals(seed) {
+  const r = mulberry32(seed), out = new Float64Array(NX);
+  for (let i = 0; i < NX; i += 2) {
+    const u1 = Math.max(r(), 1e-12), u2 = r(), R = Math.sqrt(-2 * Math.log(u1));
+    out[i] = R * Math.cos(2 * Math.PI * u2); if (i + 1 < NX) out[i + 1] = R * Math.sin(2 * Math.PI * u2);
+  }
+  return out;
+}
+let normals = unitNormals(state.seed);
+document.getElementById('reroll').addEventListener('click', () => { state.seed = (state.seed * 1664525 + 1013904223) >>> 0; normals = unitNormals(state.seed); update(); });
+document.getElementById('showParts').addEventListener('change', () => draw());
+
+// ---------- komputasi ----------
+const K = buildKernel();
+let cur = null;
+
+function dirVec(f) {
+  const I = f.inc * Math.PI / 180, A = f.az * Math.PI / 180;
+  return { Lx: Math.cos(I) * Math.cos(A), Lz: Math.sin(I) };   // z ke bawah positif
+}
+
+function update() {
+  const t0 = performance.now();
+  const m1 = state.p1on ? buildPrism(state.p1, false) : new Float64Array(M);
+  const m2 = state.p2on ? buildPrism(state.p2, true) : new Float64Array(M);
+  const { Lx, Lz } = dirVec(state.f);
+  const d1 = forwardTI(K.KU, K.KV, m1, state.f.b0, Lx, Lz);
+  const d2 = forwardTI(K.KU, K.KV, m2, state.f.b0, Lx, Lz);
+  const d = new Float64Array(NX), m = new Float64Array(M);
+  let amp = 0;
+  for (let i = 0; i < NX; i++) { d[i] = d1[i] + d2[i]; amp = Math.max(amp, Math.abs(d[i])); }
+  for (let j = 0; j < M; j++) m[j] = m1[j] + m2[j];   // jika tumpang tindih, suseptibilitas dijumlahkan
+  const sigma = state.noise / 100 * amp;
+  const dn = new Float64Array(NX);
+  for (let i = 0; i < NX; i++) dn[i] = d[i] + sigma * normals[i];
+  let active = 0; for (let j = 0; j < M; j++) if (m[j] !== 0) active++;
+  cur = { m, d, d1, d2, dn, sigma, amp, active, ms: performance.now() - t0 };
+  draw();
+  const maxv = Math.max(...d), minv = Math.min(...d);
+  document.getElementById('stats').innerHTML =
+    `<li>Anomali maks <b>${maxv.toFixed(1)} nT</b></li>` +
+    `<li>Anomali min <b>${minv.toFixed(1)} nT</b></li>` +
+    `<li>Simpangan baku noise <b>${sigma.toFixed(2)} nT</b></li>` +
+    `<li>Sel termagnetisasi <b>${active} dari ${M}</b></li>` +
+    `<li>Waktu hitung <b>${cur.ms.toFixed(1)} ms</b></li>`;
+}
+
+// ---------- menggambar ----------
+const cvs1 = document.getElementById('c1'), cvs2 = document.getElementById('c2');
+const L = 52, R = 16, T1 = 12, B1 = 38, T2 = 10;
+const v = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const isDark = () => window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+function setup(c, h) {
+  const dpr = window.devicePixelRatio || 1, w = c.parentElement.clientWidth - 28;
+  c.style.width = w + 'px'; c.style.height = h + 'px';
+  c.width = Math.round(w * dpr); c.height = Math.round(h * dpr);
+  const ctx = c.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  return { ctx, w, h };
+}
+
+function niceTicks(lo, hi, n) {
+  const span = hi - lo, raw = span / n, p = Math.pow(10, Math.floor(Math.log10(raw)));
+  const f = raw / p, step = (f < 1.5 ? 1 : f < 3 ? 2 : f < 7 ? 5 : 10) * p;
+  const out = []; for (let t = Math.ceil(lo / step) * step; t <= hi + 1e-9; t += step) out.push(+t.toFixed(10));
+  return { ticks: out, step };
+}
+
+const hex = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+const STOPS_LIGHT = ['#b4561b', '#e9b872', '#eef1f2', '#4fa3b5', '#0b3c5d'];
+const STOPS_DARK  = ['#f08a3c', '#8f5a2e', '#18222b', '#2e7c93', '#8ed8ee'];
+function colorAt(t, stops) {
+  t = Math.min(1, Math.max(0, t)) * (stops.length - 1);
+  const i = Math.min(stops.length - 2, Math.floor(t)), f = t - i, a = hex(stops[i]), b = hex(stops[i + 1]);
+  return `rgb(${Math.round(a[0] + (b[0] - a[0]) * f)},${Math.round(a[1] + (b[1] - a[1]) * f)},${Math.round(a[2] + (b[2] - a[2]) * f)})`;
+}
+const CHI_MAX = 1.0;
+
+function draw() {
+  if (!cur) return;
+  const ink = v('--ink'), muted = v('--muted'), grid = v('--grid'), accent = v('--accent'), warm = v('--warm');
+  const stops = isDark() ? STOPS_DARK : STOPS_LIGHT;
+  const font = '12px ' + v('--font-body');
+
+  // ===== grafik 1: anomali ΔT =====
+  const w0 = cvs1.parentElement.clientWidth - 28, h1 = Math.max(220, Math.min(320, w0 * 0.36));
+  let { ctx, w, h } = setup(cvs1, h1);
+  const pw = w - L - R, ph = h - T1 - B1;
+  const all = Array.from(cur.d).concat(Array.from(cur.dn));
+  if (document.getElementById('showParts').checked) all.push(...cur.d1, ...cur.d2);
+  let lo = Math.min(0, ...all), hi = Math.max(0, ...all);
+  const pad = Math.max(1, (hi - lo) * 0.08); hi += pad; if (lo < 0) lo -= pad;
+  const yt = niceTicks(lo, hi, 5);
+  const X = km => L + km / 8 * pw, Y = g => T1 + (hi - g) / (hi - lo) * ph;
+  ctx.font = font; ctx.fillStyle = muted; ctx.strokeStyle = grid; ctx.lineWidth = 1;
+  ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+  yt.ticks.forEach(t => { const y = Math.round(Y(t)) + 0.5; ctx.beginPath(); ctx.moveTo(L, y); ctx.lineTo(L + pw, y); ctx.stroke(); ctx.fillText(String(+t.toFixed(4)), L - 8, y); });
+  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  for (let k = 0; k <= 8; k++) ctx.fillText(String(k), X(k), T1 + ph + 8);
+  ctx.fillText('Jarak (km)', L + pw / 2, T1 + ph + 22);
+  ctx.save(); ctx.translate(13, T1 + ph / 2); ctx.rotate(-Math.PI / 2); ctx.textBaseline = 'middle'; ctx.fillText('ΔT (nT)', 0, 0); ctx.restore();
+  ctx.strokeStyle = muted; ctx.beginPath(); ctx.moveTo(L, Math.round(Y(0)) + 0.5); ctx.lineTo(L + pw, Math.round(Y(0)) + 0.5); ctx.stroke();
+
+  const line = (arr, color, wd, dash) => {
+    ctx.beginPath(); ctx.setLineDash(dash || []); ctx.strokeStyle = color; ctx.lineWidth = wd;
+    for (let i = 0; i < NX; i++) { const x = X(xobs[i] / 1000), y = Y(arr[i]); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }
+    ctx.stroke(); ctx.setLineDash([]);
+  };
+  if (document.getElementById('showParts').checked) {
+    if (state.p1on) line(cur.d1, muted, 1.4, [5, 4]);
+    if (state.p2on) line(cur.d2, muted, 1.4, [2, 3]);
+  }
+  ctx.fillStyle = warm;
+  for (let i = 0; i < NX; i++) { ctx.beginPath(); ctx.arc(X(xobs[i] / 1000), Y(cur.dn[i]), 2.6, 0, 7); ctx.fill(); }
+  line(cur.d, accent, 2.6);
+
+  // legenda
+  ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillStyle = ink;
+  const lx = L + 10; let ly = T1 + 12;
+  ctx.strokeStyle = accent; ctx.lineWidth = 2.6; ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(lx + 22, ly); ctx.stroke(); ctx.fillText('Anomali ΔT (tanpa noise)', lx + 30, ly);
+  ly += 18; ctx.fillStyle = warm; ctx.beginPath(); ctx.arc(lx + 11, ly, 3, 0, 7); ctx.fill(); ctx.fillStyle = ink; ctx.fillText('Data dengan noise', lx + 30, ly);
+  if (document.getElementById('showParts').checked) {
+    ly += 18; ctx.strokeStyle = muted; ctx.lineWidth = 1.4; ctx.setLineDash([5, 4]); ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(lx + 22, ly); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = ink; ctx.fillText('Kontribusi tiap prisma', lx + 30, ly);
+  }
+  if (state.hover != null) {
+    const x = Math.round(X(xobs[state.hover] / 1000)) + 0.5;
+    ctx.strokeStyle = ink; ctx.lineWidth = 1; ctx.setLineDash([3, 3]); ctx.beginPath(); ctx.moveTo(x, T1); ctx.lineTo(x, T1 + ph); ctx.stroke(); ctx.setLineDash([]);
+  }
+
+  // ===== grafik 2: model =====
+  const mh = pw / 4, h2 = T2 + mh + 74;
+  ({ ctx, w, h } = setup(cvs2, h2));
+  ctx.fillStyle = colorAt(0.5, stops); ctx.fillRect(L, T2, pw, mh);
+  const cw = pw / NX, ch = mh / NZ;
+  for (let iz = 0; iz < NZ; iz++) for (let ix = 0; ix < NX; ix++) {
+    const val = cur.m[iz * NX + ix]; if (val === 0) continue;
+    ctx.fillStyle = colorAt(0.5 + val / (2 * CHI_MAX), stops);
+    ctx.fillRect(L + ix * cw, T2 + iz * ch, Math.ceil(cw) + 0.5, Math.ceil(ch) + 0.5);
+  }
+  ctx.strokeStyle = muted; ctx.lineWidth = 1; ctx.strokeRect(L + 0.5, T2 + 0.5, pw - 1, mh - 1);
+  ctx.font = font; ctx.fillStyle = muted;
+  ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+  [0, 0.5, 1, 1.5, 2].forEach(zk => ctx.fillText(String(zk), L - 8, T2 + zk / 2 * mh));
+  ctx.save(); ctx.translate(13, T2 + mh / 2); ctx.rotate(-Math.PI / 2); ctx.textAlign = 'center'; ctx.fillText('Kedalaman (km)', 0, 0); ctx.restore();
+  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  for (let k = 0; k <= 8; k++) ctx.fillText(String(k), L + k / 8 * pw, T2 + mh + 8);
+  ctx.fillText('Jarak (km)', L + pw / 2, T2 + mh + 22);
+  const cbW = Math.min(260, pw * 0.6), cbX = L + (pw - cbW) / 2, cbY = T2 + mh + 52;
+  for (let i = 0; i < cbW; i++) { ctx.fillStyle = colorAt(i / (cbW - 1), stops); ctx.fillRect(cbX + i, cbY, 2, 9); }
+  ctx.fillStyle = muted; ctx.textBaseline = 'top';
+  ctx.textAlign = 'left'; ctx.fillText(String(-CHI_MAX), cbX, cbY + 12);
+  ctx.textAlign = 'center'; ctx.fillText('0', cbX + cbW / 2, cbY + 12);
+  ctx.textAlign = 'right'; ctx.fillText(CHI_MAX + ' SI', cbX + cbW, cbY + 12);
+  if (state.hover != null) {
+    const x = Math.round(L + (state.hover + 0.5) / NX * pw) + 0.5;
+    ctx.strokeStyle = ink; ctx.setLineDash([3, 3]); ctx.beginPath(); ctx.moveTo(x, T2); ctx.lineTo(x, T2 + mh); ctx.stroke(); ctx.setLineDash([]);
+  }
+  cvs1.setAttribute('aria-label', `Anomali magnetik, maksimum ${Math.max(...cur.d).toFixed(1)} nT`);
+}
+
+// ---------- hover ----------
+function onMove(e) {
+  const c = e.currentTarget, rect = c.getBoundingClientRect();
+  const pw = rect.width - L - R, km = (e.clientX - rect.left - L) / pw * 8;
+  if (km < 0 || km > 8) return onLeave();
+  state.hover = Math.min(NX - 1, Math.max(0, Math.floor(km / DXKM)));
+  document.getElementById('hover').textContent =
+    `x = ${(xobs[state.hover] / 1000).toFixed(2)} km, ΔT = ${cur.d[state.hover].toFixed(1)} nT (data dengan noise: ${cur.dn[state.hover].toFixed(1)} nT)`;
+  draw();
+}
+function onLeave() { state.hover = null; document.getElementById('hover').textContent = 'Arahkan kursor ke salah satu grafik untuk membaca nilainya.'; draw(); }
+[cvs1, cvs2].forEach(c => { c.addEventListener('pointermove', onMove); c.addEventListener('pointerleave', onLeave); });
+
+window.addEventListener('resize', draw);
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', draw);
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(draw);
+
+// ---------- mulai ----------
+setPreset(2);
+</script>
+</body>
+</html>
