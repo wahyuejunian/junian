@@ -79,7 +79,9 @@ const V={
   if(p)return `<div class="book">${side}<section><h1>${u('meet')} ${p.no}</h1><h2>${t(p.topik)}</h2>${p.slide?`<div class="slide"><iframe src="${slideSrc(p.slide)}" title="Slide ${p.no}" allowfullscreen loading="lazy" referrerpolicy="no-referrer"></iframe></div>`:`<p class="note">${lang=='id'?'Slide belum tersedia.':'Slides not available yet.'}</p>`}</section></div>`;
   return `<div class="book">${side}<section><h1>${t(c.nama)}</h1><p class="muted">${c.kode} · ${c.sks} SKS · Semester ${c.semester}</p><p>${t(c.deskripsi)}</p><h2>CPMK</h2><ul>${c.cpmk.map(x=>`<li>${t(x)}</li>`).join('')}</ul></section></div>`},
  ebook(id){const b=D.ebook.find(x=>x.id==id);
-  if(!b)return `<h1>${u('ebook')}</h1><div class="grid">${D.ebook.map(b=>`<article class="card">${b.cover?`<div class="cover img" role="img" aria-label="${t(b.judul)}" style="background-image:url('${img(b.cover)}')"></div>`:`<div class="cover">${t(b.judul)}</div>`}<p>${t(b.deskripsi)}</p>${b.tag.map(x=>`<span class="chip">${x}</span>`).join('')}<p><a class="chip" href="${H('baca','?id='+b.id)}">${u('baca')}</a> <a class="chip" href="${b.pdf}">${u('unduh')}</a></p></article>`).join('')}</div>`;
+  if(!b)return `<h1>${u('ebook')}</h1><div class="grid">${D.ebook.map(b=>`<article class="card">${b.cover?`<div class="cover img" role="img" aria-label="${t(b.judul)}" style="background-image:url('${img(b.cover)}')"></div>`:`<div class="cover">${t(b.judul)}</div>`}<p>${t(b.deskripsi)}</p>${b.tag.map(x=>`<span class="chip">${x}</span>`).join('')}<p><a class="chip" href="${H('baca','?id='+b.id)}">${u('baca')}</a> ${b.pdf&&b.pdf!='#'?`<a class="chip" href="${b.pdf}">${u('unduh')}</a>`:''}</p></article>`).join('')}</div>`;
+  /* ebook berformat HTML interaktif ("tipe":"html") ditampilkan lewat iframe */
+  if(b.tipe=='html')return `<p><a href="${H('ebook')}">← ${u('ebook')}</a> · <a href="${B+b.file}" target="_blank" rel="noopener">${lang=='id'?'Buka layar penuh':'Open full screen'} ↗</a></p><iframe id="ebf" class="embed" src="${B+b.file}" title="${t(b.judul)}"></iframe>`;
   return `<p><a href="${H('ebook')}">← ${u('ebook')}</a></p><div class="book"><nav class="toc" id="toc" aria-label="TOC"></nav><article class="md" id="md"></article></div>`},
  proyek(){return `<h1>${u('proyek')}</h1><div class="grid">${D.proyek.map(p=>`<article class="card">${p.gambar?`<img class="thumb" src="${img(p.gambar)}" alt="${p.judul}" loading="lazy">`:''}<h3>${p.judul}</h3><p>${t(p.deskripsi)}</p>${p.teknologi.map(x=>`<span class="chip">${x}</span>`).join('')}<p><a href="${p.link}">Demo / Repo</a></p></article>`).join('')}</div>`},
  kontak(){const s=D.site;return `<h1>${u('kontak')}</h1><p>${s.email}<br>${s.alamat}<br>${t(s.konsultasi)}</p>
@@ -125,6 +127,8 @@ const after={
    $('#list').innerHTML=r.map(b=>{const t2=tandem(b);return `<div class="item"><b>${b.jenjang} · ${b.nama} · ${b.jenis} · ${b.tahun}</b> <span class="chip">${b.status}</span><br>${b.topik}${t2?`<br><span class="muted">${lang=='id'?'Pembimbing tandem':'Co-supervisors'}: ${t2}</span>`:''}</div>`}).join('')||`<p class="note">${u('empty')}</p>`};
   ['q','fy','fs','fj'].forEach(i=>$('#'+i).oninput=go);go()},
  async ebook(id){const b=D.ebook.find(x=>x.id==id);if(!b)return;
+  if(b.tipe=='html'){const f=$('#ebf'),fit=()=>{try{f.style.height=Math.max(640,f.contentDocument.documentElement.scrollHeight)+'px'}catch(e){}};
+   f.onload=()=>{fit();try{new ResizeObserver(fit).observe(f.contentDocument.body)}catch(e){}};return}
   const md=window.markdownit({html:false,highlight:(c,l)=>l&&hljs.getLanguage(l)?hljs.highlight(c,{language:l}).value:''});
   const el=$('#md');el.innerHTML=md.render(await (await fetch(B+b.file)).text());
   const toc=$('#toc');el.querySelectorAll('h2,h3').forEach((h,i)=>{h.id='b'+i;toc.insertAdjacentHTML('beforeend',`<a href="javascript:document.getElementById('b${i}').scrollIntoView()">${h.textContent}</a>`)});
