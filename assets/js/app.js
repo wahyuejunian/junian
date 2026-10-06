@@ -34,7 +34,9 @@ async function load(n){const url=(D.site?.sheets||{})[n];
  return (await fetch(`${B}data/${n}.json`)).json()}
 async function init(){app.innerHTML='<div class="sk"></div>'.repeat(4);
  D.site=await (await fetch(B+'data/site.json')).json();
- for(const n of['publikasi','hibah','pengabdian','bimbingan','matakuliah','materi','ebook','proyek'])D[n]=await load(n).catch(()=>[]);
+const names=['publikasi','hibah','pengabdian','bimbingan','matakuliah','materi','ebook','proyek'];
+const res=await Promise.all(names.map(n=>load(n).catch(()=>[])));
+names.forEach((n,i)=>D[n]=res[i]);
  build();chrome();route()}
 
 /* ---- Grafik (warna mengikuti tema) ---- */
