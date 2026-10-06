@@ -53,3 +53,5 @@ footer{background:var(--hero);color:#CFD9EA;text-align:center;padding:22px;font-
 .toc a{padding:4px 8px;border-left:3px solid transparent;text-decoration:none;color:var(--ink)}
 .toc a.on{border-left-color:var(--orange);font-weight:700;color:var(--accent)}
 .book>section{min-width:0}
+.cover.img{background-size:cover;background-position:center}
+.thumb{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:10px;margin-bottom:10px}
