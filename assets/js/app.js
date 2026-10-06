@@ -6,6 +6,8 @@ let lang=localStorage.lang||'id', D={}, charts=[], live=false;
 /* Teks antarmuka dwibahasa. Isi data bilingual: {"id":"..","en":".."} */
 const UI={id:{home:'Beranda',profil:'Profil',penelitian:'Penelitian',pengabdian:'Pengabdian',bimbingan:'Bimbingan',kuliah:'Perkuliahan',ebook:'Ebook',proyek:'Proyek',kontak:'Kontak',cv:'Unduh CV',hubungi:'Hubungi',pub:'Publikasi',mhs:'Mahasiswa bimbingan',prj:'Proyek',search:'Cari…',all:'Semua',baca:'Baca',unduh:'Unduh PDF',fail:'Data belum bisa dimuat. Menampilkan data lokal.',upd:'Terakhir diperbarui',src:'Sumber',sheet:'Google Sheets',local:'data lokal',meet:'Pertemuan',topic:'Topik',read:'Bacaan',task:'Tugas',send:'Kirim pesan',year:'Tahun',type:'Jenis',back:'Kembali',empty:'Tidak ada data yang cocok.'},
  en:{home:'Home',profil:'Profile',penelitian:'Research',pengabdian:'Community service',bimbingan:'Supervision',kuliah:'Teaching',ebook:'Ebooks',proyek:'Projects',kontak:'Contact',cv:'Download CV',hubungi:'Contact me',pub:'Publications',mhs:'Supervised students',prj:'Projects',search:'Search…',all:'All',baca:'Read',unduh:'Download PDF',fail:'Data could not be loaded. Showing local data.',upd:'Last updated',src:'Source',sheet:'Google Sheets',local:'local data',meet:'Session',topic:'Topic',read:'Reading',task:'Assignment',send:'Send message',year:'Year',type:'Type',back:'Back',empty:'No matching data.'}};
+/* Gambar: URL penuh dipakai apa adanya; path relatif (mis. assets/img/foto.jpg) otomatis diberi awalan folder */
+const img=x=>/^(https?:|data:|\/\/)/i.test(x)?x:B+x;
 /* DOI: terima "10.xxxx/abc" atau URL penuh */
 const doiUrl=d=>!d?'':/^https?:/i.test(d)?d:'https://doi.org/'+String(d).replace(/^doi:\s*/i,'').trim();
 /* Slide dari Google Slides (publish to web / link berbagi) atau PDF Google Drive -> URL embed */
@@ -34,9 +36,7 @@ async function load(n){const url=(D.site?.sheets||{})[n];
  return (await fetch(`${B}data/${n}.json`)).json()}
 async function init(){app.innerHTML='<div class="sk"></div>'.repeat(4);
  D.site=await (await fetch(B+'data/site.json')).json();
-const names=['publikasi','hibah','pengabdian','bimbingan','matakuliah','materi','ebook','proyek'];
-const res=await Promise.all(names.map(n=>load(n).catch(()=>[])));
-names.forEach((n,i)=>D[n]=res[i]);
+ for(const n of['publikasi','hibah','pengabdian','bimbingan','matakuliah','materi','ebook','proyek'])D[n]=await load(n).catch(()=>[]);
  build();chrome();route()}
 
 /* ---- Grafik (warna mengikuti tema) ---- */
@@ -58,7 +58,7 @@ const V={
  home(){const s=D.site,st=[[D.publikasi.length,'pub'],[D.bimbingan.length,'mhs'],[D.proyek.length,'prj']];
   return `<section class="hero"><div><span class="role">${t(s.jabatan)} · ${s.afiliasi}</span><h1>${s.nama}</h1><p>${t(s.ringkas)}</p>
   <a class="btn" href="${H('kontak')}">${u('hubungi')}</a></div>
-  <div class="photo" role="img" aria-label="Foto ${s.nama}" style="background-image:url(${s.foto})"></div>
+  <div class="photo" role="img" aria-label="Foto ${s.nama}" style="background-image:url(${img(s.foto)})"></div>
   <svg class="seismo" viewBox="0 0 1000 70" preserveAspectRatio="none" aria-hidden="true"><path d="M0 35H180l10-10 12 22 14-36 16 52 14-46 12 30 10-12H520l8-8 10 16 12-28 14 40 10-22 8 8H1000"/></svg></section>
   <div class="stats">${st.map(([n,k])=>`<div class="stat"><b data-n="${n}">0</b>${u(k)}</div>`).join('')}</div>
   <p>${(s.keahlian||[]).map(k=>`<span class="chip">${t(k)}</span>`).join('')}</p>`},
@@ -72,16 +72,16 @@ const V={
   <div class="tools"><input id="q" type="search" placeholder="${u('search')}" aria-label="${u('search')}"><select id="fy" aria-label="${u('year')}"></select><select id="fs" aria-label="Status"></select><select id="fj" aria-label="Level"></select></div><div id="list"></div>`},
  kuliah(id,m){const c=D.mk.find(x=>x.id==id);
   /* daftar mata kuliah: kartu bergaya "rak buku" seperti Ebook; kolom opsional gambar = URL gambar sampul */
-  if(!c)return `<h1>${u('kuliah')}</h1><div class="grid">${D.mk.map(c=>`<a class="card course" href="${H('mata-kuliah','?id='+c.id)}"><div class="cover"${c.gambar?` style="background-image:linear-gradient(rgba(15,39,71,.45),rgba(15,39,71,.9)),url('${c.gambar}');background-size:cover"`:''}><span><small>${c.kode}</small><br>${t(c.nama)}</span></div><p class="muted">${c.sks} SKS · Semester ${c.semester}</p><p>${t(c.deskripsi)}</p></a>`).join('')}</div>`;
+  if(!c)return `<h1>${u('kuliah')}</h1><div class="grid">${D.mk.map(c=>`<a class="card course" href="${H('mata-kuliah','?id='+c.id)}"><div class="cover"${c.gambar?` style="background-image:linear-gradient(rgba(15,39,71,.45),rgba(15,39,71,.9)),url('${img(c.gambar)}');background-size:cover"`:''}><span><small>${c.kode}</small><br>${t(c.nama)}</span></div><p class="muted">${c.sks} SKS · Semester ${c.semester}</p><p>${t(c.deskripsi)}</p></a>`).join('')}</div>`;
   const p=m&&c.pertemuan.find(x=>x.no==m);
   /* navigasi pertemuan/topik di kiri, isi di kanan */
   const side=`<nav class="toc" aria-label="${u('meet')}"><a href="${H('perkuliahan')}">← ${u('kuliah')}</a><h3>${t(c.nama)}</h3><a class="${p?'':'on'}" href="${H('mata-kuliah','?id='+id)}">${lang=='id'?'Ringkasan':'Overview'}</a>${c.pertemuan.map(x=>`<a class="${p&&p.no==x.no?'on':''}" href="${H('pertemuan','?id='+id+'&p='+x.no)}">${x.no}. ${t(x.topik)}</a>`).join('')}</nav>`;
   if(p)return `<div class="book">${side}<section><h1>${u('meet')} ${p.no}</h1><h2>${t(p.topik)}</h2>${p.slide?`<div class="slide"><iframe src="${slideSrc(p.slide)}" title="Slide ${p.no}" allowfullscreen loading="lazy" referrerpolicy="no-referrer"></iframe></div>`:`<p class="note">${lang=='id'?'Slide belum tersedia.':'Slides not available yet.'}</p>`}</section></div>`;
   return `<div class="book">${side}<section><h1>${t(c.nama)}</h1><p class="muted">${c.kode} · ${c.sks} SKS · Semester ${c.semester}</p><p>${t(c.deskripsi)}</p><h2>CPMK</h2><ul>${c.cpmk.map(x=>`<li>${t(x)}</li>`).join('')}</ul></section></div>`},
  ebook(id){const b=D.ebook.find(x=>x.id==id);
-  if(!b)return `<h1>${u('ebook')}</h1><div class="grid">${D.ebook.map(b=>`<article class="card"><div class="cover">${t(b.judul)}</div><p>${t(b.deskripsi)}</p>${b.tag.map(x=>`<span class="chip">${x}</span>`).join('')}<p><a class="chip" href="${H('baca','?id='+b.id)}">${u('baca')}</a> <a class="chip" href="${b.pdf}">${u('unduh')}</a></p></article>`).join('')}</div>`;
+  if(!b)return `<h1>${u('ebook')}</h1><div class="grid">${D.ebook.map(b=>`<article class="card">${b.cover?`<div class="cover img" role="img" aria-label="${t(b.judul)}" style="background-image:url('${img(b.cover)}')"></div>`:`<div class="cover">${t(b.judul)}</div>`}<p>${t(b.deskripsi)}</p>${b.tag.map(x=>`<span class="chip">${x}</span>`).join('')}<p><a class="chip" href="${H('baca','?id='+b.id)}">${u('baca')}</a> <a class="chip" href="${b.pdf}">${u('unduh')}</a></p></article>`).join('')}</div>`;
   return `<p><a href="${H('ebook')}">← ${u('ebook')}</a></p><div class="book"><nav class="toc" id="toc" aria-label="TOC"></nav><article class="md" id="md"></article></div>`},
- proyek(){return `<h1>${u('proyek')}</h1><div class="grid">${D.proyek.map(p=>`<article class="card"><h3>${p.judul}</h3><p>${t(p.deskripsi)}</p>${p.teknologi.map(x=>`<span class="chip">${x}</span>`).join('')}<p><a href="${p.link}">Demo / Repo</a></p></article>`).join('')}</div>`},
+ proyek(){return `<h1>${u('proyek')}</h1><div class="grid">${D.proyek.map(p=>`<article class="card">${p.gambar?`<img class="thumb" src="${img(p.gambar)}" alt="${p.judul}" loading="lazy">`:''}<h3>${p.judul}</h3><p>${t(p.deskripsi)}</p>${p.teknologi.map(x=>`<span class="chip">${x}</span>`).join('')}<p><a href="${p.link}">Demo / Repo</a></p></article>`).join('')}</div>`},
  kontak(){const s=D.site;return `<h1>${u('kontak')}</h1><p>${s.email}<br>${s.alamat}<br>${t(s.konsultasi)}</p>
   <form action="https://api.web3forms.com/submit" method="POST"><input type="hidden" name="access_key" value="${s.web3forms}"><p><input name="name" placeholder="Nama / Name" required aria-label="Name"> <input name="email" type="email" placeholder="Email" required aria-label="Email"></p><p><textarea name="message" rows="5" required aria-label="Message"></textarea></p><button class="btn">${u('send')}</button></form>`}};
 
