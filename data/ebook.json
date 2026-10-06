@@ -33,5 +33,23 @@
     "file": "ebook/forward-gravity-2d.html",
     "tipe": "html",
     "pdf": "#"
+  },
+  {
+    "id": "forward-magnetic-2d",
+    "judul": {
+      "id": "Forward Modelling Magnetik 2D",
+      "en": "2D Magnetic Forward Modelling"
+    },
+    "deskripsi": {
+      "id": "Simulasi interaktif anomali magnetik dari model prisma bawah permukaan.",
+      "en": "Interactive simulation of magnetic anomalies from subsurface prism models."
+    },
+    "tag": [
+      "magnetik",
+      "interaktif"
+    ],
+    "file": "ebook/forward-magnetic-2d.html",
+    "tipe": "html",
+    "pdf": "#"
   }
 ]
