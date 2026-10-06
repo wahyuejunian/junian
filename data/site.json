@@ -3,7 +3,7 @@
 "ringkas":{"id":"Sesuatu harus dimulai bukan hanya direncanakan, gagal itu wajar karena kita belajar.","en":"Something must be started not just planned, failure is normal because we are learning."},
 "bio":{"id":"Saya dosen Gen-Z di Program Studi Teknik Geofisika Institut Teknologi Sumatera (ITERA) dengan fokus riset pada metode geofisika eksplorasi dan pemodelan inversi. Memiliki pengalaman dalam bidang pengajaran, penelitian, dan pengabdian kepada masyarakat. Aktif mengembangkan metode komputasi untuk pemodelan geofisika menggunakan Python dan MATLAB.","en":"I am a Gen-Z lecturer in the Geophysical Engineering Study Program at the Sumatra Institute of Technology (ITERA), focusing my research on exploration geophysical methods and inversion modeling. I have experience in teaching, research, and community service. I actively develop computational methods for geophysical modeling using Python and MATLAB."},
 "keahlian":[{"id":"Geofisika","en":"Geophysics"},{"id":"Pemodelan inversi","en":"Inversion modelling"},{"id":"Panas bumi","en":"Geothermal"}],
-"foto":"https://placehold.co/600x600/1d3a66/F28C28?text=WEJ","email":"wahyu.junian@tg.itera.ac.id","alamat":"Lampung Selatan",
+"foto":"assets/img/profil.JPG","email":"wahyu.junian@tg.itera.ac.id","alamat":"Lampung Selatan",
 "konsultasi":{"id":"Senin–Juma'at, 08.00–16.00","en":"Mon–Fry, 8 am – 4 pm"},"web3forms":"eb76b811-89c5-4d8f-b232-a6f44f1bfe92",
 "stats":{"sitasi":120,"hindex":5},
 "pendidikan":[{"jenjang":"S3","kampus":"Looking for PhD","tahun":"now"},{"jenjang":"S2","kampus":"Institut Teknologi Bandung (ITB)","tahun":"2021-2023"},{"jenjang":"S1","kampus":"Institut Teknologi Sumatera (ITERA)","tahun":"2016-2020"}],
