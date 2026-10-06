@@ -55,3 +55,4 @@ footer{background:var(--hero);color:#CFD9EA;text-align:center;padding:22px;font-
 .book>section{min-width:0}
 .cover.img{background-size:cover;background-position:center}
 .thumb{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:10px;margin-bottom:10px}
+.embed{display:block;width:100%;min-height:640px;border:1px solid var(--line);border-radius:12px;background:var(--card)}
