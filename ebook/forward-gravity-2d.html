@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Forward modelling gravitasi 2D interaktif</title>
+<title>Forward Modelling Gravitasi 2D</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Spectral:wght@500;600&display=swap" rel="stylesheet">
@@ -104,8 +104,8 @@
 <body>
 <div class="wrap">
   <header>
-    <h1>Forward modelling gravitasi 2D</h1>
-    <p>Geser parameter prisma dan lihat anomali gravitasi di permukaan berubah seketika. Perhitungan memakai matriks kernel dari rumus tertutup sel persegi panjang, dan berjalan penuh di browser Anda.</p>
+    <h1>Forward Modelling Gravitasi 2D</h1>
+    <p>Geser parameter prisma dan lihat perubahan respons anomali gravitasi.</p>
   </header>
 
   <div class="layout">
@@ -148,10 +148,6 @@
       <li>Coba geser <b>kedalaman puncak</b> prisma: makin dalam, anomali makin kecil dan makin lebar. Dua prisma berbeda kedalaman bisa memberi kurva yang mirip, dan itulah akar ketidakunikan pada inversi gravitasi.</li>
       <li>Kontras densitas negatif (warna oranye) memberi anomali negatif, seperti zona sedimen atau alterasi pada studi panas bumi.</li>
     </ul>
-    <p>Model dibagi menjadi 80 × 20 sel berukuran 0,1 km, dengan 80 titik observasi di pusat sel pada permukaan. Respons tiap sel dihitung dari</p>
-    <div class="eq">g = 2Gρ [ F(ξ₂, z₂) − F(ξ₂, z₁) − F(ξ₁, z₂) + F(ξ₁, z₁) ],&nbsp;&nbsp; F(ξ, z) = z·arctan(ξ/z) + (ξ/2)·ln(ξ² + z²)</div>
-    <p>sehingga data total adalah <b>d = A m</b>. Matriks A hanya bergantung pada geometri, jadi dihitung sekali saat halaman dibuka.<br>
-    <small>Model 1 dan 2 mengikuti dimensi pada Junian (2026), Earth Science Informatics 19:143, secara mendekati.</small></p>
   </section>
 </div>
 
