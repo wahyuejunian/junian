@@ -1,1 +1,18 @@
-[{"id":"modul-gravitasi","judul":{"id":"Modul Metode Gravitasi","en":"Gravity Method Module"},"deskripsi":{"id":"Modul praktikum pengolahan data gravitasi.","en":"Gravity data processing lab module."},"tag":["gravitasi","modul"],"file":"ebook/modul-gravitasi.md","pdf":"#"}]
+[{"id":"modul-gravitasi",
+  "judul":{"id":"Modul Metode Gravitasi","en":"Gravity Method Module"},
+  "deskripsi":{"id":"Modul praktikum pengolahan data gravitasi.","en":"Gravity data processing lab module."},
+  "tag":["gravitasi","modul"],
+  "file":"ebook/modul-gravitasi.md","pdf":"#"}
+
+{
+ "id":"forward-gravity-2d",
+ "judul":{"id":"Forward Modelling Gravitasi 2D","en":"2D Gravity Forward Modelling"},
+ "deskripsi":{"id":"Simulasi interaktif anomali gravitasi dari model prisma bawah permukaan.","en":"Interactive simulation of gravity anomalies from subsurface prism models."},
+ "tag":["gravitasi","interaktif"],
+ "file":"ebook/forward-gravity-2d.html",
+ "tipe":"html",
+ "pdf":"#"
+}
+]
+
+
