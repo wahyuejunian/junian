@@ -1,1 +1,344 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Forward Modelling VES 1D</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Spectral:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root { --paper:#f3f5f6; --panel:#fff; --ink:#14202b; --muted:#5b6b78; --line:#d5dde2; --grid:#e3e9ed; --accent:#0b6e7a; --warm:#b4561b;
+    --font-body:"Instrument Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; --font-head:"Spectral",Georgia,"Times New Roman",serif; color-scheme:light; }
+  @media (prefers-color-scheme: dark) { :root { --paper:#10171d; --panel:#172029; --ink:#e7eef2; --muted:#93a4b1; --line:#2a3745; --grid:#212d38; --accent:#5cc3d1; --warm:#f08a3c; color-scheme:dark; } }
+  * { box-sizing:border-box; }
+  html { -webkit-text-size-adjust:100%; }
+  body { margin:0; background:var(--paper); color:var(--ink); font-family:var(--font-body); font-size:15px; line-height:1.55; }
+  .wrap { max-width:1200px; margin:0 auto; padding:28px 20px 56px; }
+  header { max-width:760px; margin-bottom:26px; }
+  h1 { font-family:var(--font-head); font-weight:600; font-size:clamp(28px,4.2vw,40px); line-height:1.12; letter-spacing:-.01em; margin:0 0 10px; }
+  header p { margin:0; color:var(--muted); max-width:62ch; }
+  .layout { display:grid; grid-template-columns:330px minmax(0,1fr); gap:28px; align-items:start; }
+  @media (max-width:880px) { .layout { grid-template-columns:1fr; } }
+  .controls { background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:6px 18px 18px; }
+  fieldset { border:0; border-top:1px solid var(--line); margin:0; padding:16px 0 4px; min-inline-size:0; }
+  fieldset:first-of-type { border-top:0; }
+  legend { font-family:var(--font-head); font-weight:600; font-size:17px; padding:0; float:left; width:100%; margin-bottom:10px; }
+  legend + * { clear:both; }
+  .row { margin-bottom:12px; }
+  .row .top { display:flex; justify-content:space-between; align-items:baseline; gap:8px; }
+  .row label { font-size:14px; }
+  .row output { font-variant-numeric:tabular-nums; color:var(--accent); font-weight:600; font-size:14px; }
+  input[type=range] { width:100%; margin:4px 0 0; accent-color:var(--accent); }
+  .check { display:flex; align-items:center; gap:8px; margin:0 0 12px; font-size:14px; }
+  .check input { accent-color:var(--accent); width:16px; height:16px; margin:0; flex:none; }
+  .btns { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:8px; }
+  button { font:inherit; font-size:14px; color:var(--ink); background:transparent; border:1px solid var(--line); border-radius:4px; padding:7px 12px; cursor:pointer; }
+  button:hover { border-color:var(--accent); color:var(--accent); }
+  :focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+  .charts h2 { font-family:var(--font-head); font-size:18px; font-weight:600; margin:0 0 6px; }
+  .chart-block { background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:14px 14px 8px; margin-bottom:18px; }
+  canvas { display:block; width:100%; touch-action:pan-y; }
+  .stats { display:flex; flex-wrap:wrap; gap:6px 26px; margin:0 0 18px; padding:0; list-style:none; }
+  .stats li { font-size:14px; color:var(--muted); }
+  .stats b { color:var(--ink); font-variant-numeric:tabular-nums; font-weight:600; }
+  #hover { margin:0 0 4px; font-size:14px; color:var(--muted); font-variant-numeric:tabular-nums; min-height:1.5em; }
+  .notes { margin-top:34px; max-width:760px; }
+  .notes h2 { font-family:var(--font-head); font-size:22px; margin:0 0 8px; }
+  .notes ul { padding-left:20px; }
+  .eq { font-family:"Cambria Math","STIX Two Math",Georgia,serif; background:var(--panel); border:1px solid var(--line); border-radius:4px; padding:10px 14px; margin:10px 0; overflow-x:auto; white-space:nowrap; }
+  small { color:var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Forward Modelling VES 1D</h1>
+    <p>Atur resistivitas dan ketebalan tiap lapisan, lalu lihat kurva resistivitas semu terhadap AB/2 (Vertical Electrical Sounding).</p>
+  </header>
 
+  <div class="layout">
+    <form class="controls" onsubmit="return false">
+      <fieldset>
+        <legend>Contoh model</legend>
+        <div class="btns">
+          <button type="button" data-p="m1">Model 1: 2 lapis</button>
+          <button type="button" data-p="m2">Model 2: 3 lapis</button>
+        </div>
+        <div class="btns" aria-label="Tipe kurva tiga lapis">
+          <button type="button" data-p="A">Tipe A</button><button type="button" data-p="H">Tipe H</button>
+          <button type="button" data-p="K">Tipe K</button><button type="button" data-p="Q">Tipe Q</button>
+        </div>
+      </fieldset>
+      <fieldset id="fs-layer"><legend>Model lapisan</legend></fieldset>
+      <fieldset id="fs-ab"><legend>Konfigurasi AB/2</legend></fieldset>
+      <fieldset id="fs-noise">
+        <legend>Noise dan tampilan</legend>
+        <div id="noise-rows"></div>
+        <label class="check"><input type="checkbox" id="showRho"> Tampilkan garis resistivitas tiap lapisan</label>
+        <div class="btns"><button type="button" id="reroll">Acak ulang noise</button></div>
+      </fieldset>
+    </form>
+
+    <main class="charts">
+      <div class="chart-block">
+        <h2>Kurva resistivitas semu</h2>
+        <canvas id="c1" role="img" aria-label="Kurva resistivitas semu terhadap AB/2"></canvas>
+      </div>
+      <div class="chart-block">
+        <h2>Model resistivitas terhadap kedalaman</h2>
+        <canvas id="c2" role="img" aria-label="Profil resistivitas lapisan terhadap kedalaman"></canvas>
+      </div>
+      <p id="hover">Arahkan kursor ke kurva untuk membaca nilainya.</p>
+      <ul class="stats" id="stats"></ul>
+    </main>
+  </div>
+
+  <section class="notes">
+    <h2>Cara membaca</h2>
+    <ul>
+      <li>Garis tebal adalah resistivitas semu ρₐ tanpa noise, titik adalah data dengan noise Gaussian multiplikatif (simpangan baku = persentase noise × ρₐ).</li>
+      <li>Pada AB/2 kecil, ρₐ mendekati resistivitas lapisan pertama. Pada AB/2 sangat besar, ρₐ mendekati resistivitas lapisan terakhir. Garis putus-putus menunjukkan kedua asimtot itu dan lapisan di antaranya.</li>
+      <li>Tipe kurva tiga lapis: A (ρ₁ &lt; ρ₂ &lt; ρ₃), Q (ρ₁ &gt; ρ₂ &gt; ρ₃), H (ρ₂ minimum), K (ρ₂ maksimum). Lapisan tipis sulit terlihat pada kurva (prinsip ekuivalensi).</li>
+    </ul>
+    <div class="eq">T<sub>i</sub>(λ) = [ T<sub>i+1</sub> + ρ<sub>i</sub>·tanh(λh<sub>i</sub>) ] / [ 1 + T<sub>i+1</sub>·tanh(λh<sub>i</sub>)/ρ<sub>i</sub> ] , &nbsp; ρₐ(AB/2) = (1/10⁴)·Σ C<sub>j</sub>·T(λ<sub>j</sub>) &nbsp; (13 koefisien)</div>
+    <small>Rekursi transformasi resistivitas (T<sub>N</sub> = ρ<sub>N</sub>) dan filter konvolusi digital 13 koefisien (m = 4,438; 4,438 titik per dekade) mengikuti fungsi VES1D pada kode MATLAB.</small>
+  </section>
+</div>
+
+<script>
+// ==PHYSICS-START
+// Setara fungsi VES1D (MATLAB): u = 1/λ, 25 sampel T(λ) berjarak e = exp(ln10/(2m)), dipakai tiap sampel kedua.
+const NQ = 13, FSH = 10, MS = 4.438, ESTEP = Math.exp(Math.LN10 / (2 * MS)), NS = 2 * NQ - 1;
+const FILT = [105, -262, 416, -746, 1605, -4390, 13396, -27841, 16448, 8183, 2525, 336, 225];
+
+function ves1d(rho, thick, ab) {
+  const L = rho.length, out = new Float64Array(ab.length), a = new Float64Array(NS);
+  for (let k = 0; k < ab.length; k++) {
+    let u = ab[k] * Math.exp(-FSH * Math.LN10 / MS);
+    for (let i = 0; i < NS; i++) {
+      let t = rho[L - 1];
+      for (let w = L - 2; w >= 0; w--) {
+        const aa = Math.tanh(thick[w] / u);
+        t = (t + rho[w] * aa) / (1 + t * aa / rho[w]);
+      }
+      a[i] = t; u *= ESTEP;
+    }
+    let s = 0;
+    for (let j = 0; j < NQ; j++) s += FILT[j] * a[2 * j];
+    out[k] = s / 10000;
+  }
+  return out;
+}
+// ==PHYSICS-END
+
+const $ = id => document.getElementById(id);
+const state = { n: 3, rho: [50, 20, 300, 100], h: [5, 10, 20], lo: 0.1, hi: 2.7, np: 25, noise: 5, seed: 7, hover: null };
+const PRESETS = {
+  m1: { n: 2, rho: [50, 20, 300, 100], h: [5, 10, 20] },
+  m2: { n: 3, rho: [50, 20, 300, 100], h: [5, 10, 20] },
+  A:  { n: 3, rho: [10, 100, 1000, 100], h: [10, 20, 20] },
+  H:  { n: 3, rho: [2000, 100, 800, 100], h: [10, 20, 20] },
+  K:  { n: 3, rho: [100, 1000, 10, 100], h: [10, 20, 20] },
+  Q:  { n: 3, rho: [1000, 100, 10, 100], h: [10, 20, 20] },
+};
+const SUB = ['₁', '₂', '₃', '₄'];
+const rows = [];
+
+function dec(step) { const s = String(step); return s.includes('.') ? s.split('.')[1].length : 0; }
+function fmtRho(x) { return x >= 100 ? x.toFixed(0) : x.toFixed(1); }
+
+// spec: {label,min,max,step,get,set,fmt,vis}
+function addSlider(box, id, s) {
+  const row = document.createElement('div'); row.className = 'row';
+  const top = document.createElement('div'); top.className = 'top';
+  const lab = document.createElement('label'); lab.htmlFor = id; lab.textContent = s.label;
+  const out = document.createElement('output'); out.htmlFor = id;
+  top.append(lab, out);
+  const inp = document.createElement('input'); inp.type = 'range'; inp.id = id; inp.min = s.min; inp.max = s.max; inp.step = s.step;
+  inp.addEventListener('input', () => { s.set(parseFloat(inp.value)); out.textContent = s.fmt(parseFloat(inp.value)); applyVis(); update(); });
+  row.append(top, inp); box.append(row);
+  rows.push({ row, inp, out, s });
+}
+function syncInputs() { rows.forEach(({ inp, out, s }) => { inp.value = s.get(); out.textContent = s.fmt(s.get()); }); applyVis(); }
+function applyVis() { rows.forEach(({ row, s }) => { row.hidden = !(s.vis ? s.vis() : true); }); }
+
+const fl = $('fs-layer');
+addSlider(fl, 's-n', { label: 'Jumlah lapisan', min: 2, max: 4, step: 1, get: () => state.n, set: v => state.n = v, fmt: v => String(v) });
+for (let i = 0; i < 4; i++) {
+  addSlider(fl, 's-r' + i, { label: 'Resistivitas ρ' + SUB[i] + ' (Ω·m)', min: 0, max: 4, step: 0.02,
+    get: () => Math.log10(state.rho[i]), set: v => state.rho[i] = Math.pow(10, v), fmt: v => fmtRho(Math.pow(10, v)), vis: () => i < state.n });
+  if (i < 3) addSlider(fl, 's-h' + i, { label: 'Tebal h' + SUB[i] + ' (m)', min: 0.5, max: 100, step: 0.5,
+    get: () => state.h[i], set: v => state.h[i] = v, fmt: v => v.toFixed(1), vis: () => i < state.n - 1 });
+}
+const fa = $('fs-ab');
+addSlider(fa, 's-lo', { label: 'log₁₀ AB/2 awal', min: 0, max: 1.5, step: 0.1, get: () => state.lo, set: v => state.lo = Math.min(v, state.hi - 0.5), fmt: v => v.toFixed(1) + ' (' + fmtRho(Math.pow(10, v)) + ' m)' });
+addSlider(fa, 's-hi', { label: 'log₁₀ AB/2 akhir', min: 1.5, max: 3.5, step: 0.1, get: () => state.hi, set: v => state.hi = v, fmt: v => v.toFixed(1) + ' (' + fmtRho(Math.pow(10, v)) + ' m)' });
+addSlider(fa, 's-np', { label: 'Jumlah titik ukur', min: 10, max: 40, step: 1, get: () => state.np, set: v => state.np = v, fmt: v => String(v) });
+addSlider($('noise-rows'), 's-nz', { label: 'Noise (% dari ρₐ)', min: 0, max: 15, step: 0.5, get: () => state.noise, set: v => state.noise = v, fmt: v => v.toFixed(1) });
+
+document.querySelectorAll('[data-p]').forEach(b => b.addEventListener('click', () => {
+  const p = PRESETS[b.dataset.p]; state.n = p.n; state.rho = p.rho.slice(); state.h = p.h.slice(); syncInputs(); update();
+}));
+$('showRho').addEventListener('change', () => draw());
+
+// ---------- noise ----------
+function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function unitNormals(seed, n) {
+  const r = mulberry32(seed), out = new Float64Array(n);
+  for (let i = 0; i < n; i += 2) {
+    const u1 = Math.max(r(), 1e-12), u2 = r(), R = Math.sqrt(-2 * Math.log(u1));
+    out[i] = R * Math.cos(2 * Math.PI * u2); if (i + 1 < n) out[i + 1] = R * Math.sin(2 * Math.PI * u2);
+  }
+  return out;
+}
+let normals = unitNormals(state.seed, 64);
+$('reroll').addEventListener('click', () => { state.seed = (state.seed * 1664525 + 1013904223) >>> 0; normals = unitNormals(state.seed, 64); update(); });
+
+// ---------- komputasi ----------
+let cur = null;
+function curveType(r) {
+  if (r[0] < r[1] && r[1] < r[2]) return 'A'; if (r[0] > r[1] && r[1] > r[2]) return 'Q';
+  if (r[0] > r[1] && r[1] < r[2]) return 'H'; if (r[0] < r[1] && r[1] > r[2]) return 'K'; return 'campuran';
+}
+function update() {
+  const t0 = performance.now(), n = state.n, np = state.np;
+  const rho = state.rho.slice(0, n), th = state.h.slice(0, n - 1);
+  const ab = Float64Array.from({ length: np }, (_, k) => Math.pow(10, state.lo + (state.hi - state.lo) * k / (np - 1)));
+  const d = ves1d(rho, th, ab);
+  const dn = Float64Array.from(d, (x, k) => Math.max(0.05 * x, x * (1 + state.noise / 100 * normals[k])));
+  cur = { ab, d, dn, rho, th, ms: performance.now() - t0 };
+  draw();
+  const depth = th.reduce((s, x) => s + x, 0);
+  $('stats').innerHTML =
+    `<li>ρₐ maks <b>${fmtRho(Math.max(...d))} Ω·m</b></li><li>ρₐ min <b>${fmtRho(Math.min(...d))} Ω·m</b></li>` +
+    `<li>Kedalaman ke lapisan terakhir <b>${depth.toFixed(1)} m</b></li>` +
+    (n === 3 ? `<li>Tipe kurva <b>${curveType(rho)}</b></li>` : `<li>Jumlah lapisan <b>${n}</b></li>`) +
+    `<li>Waktu hitung <b>${cur.ms.toFixed(1)} ms</b></li>`;
+}
+
+// ---------- menggambar ----------
+const cv1 = $('c1'), cv2 = $('c2');
+const L = 58, R = 16, T = 34, B = 40;
+const cssv = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const LAYER_COL = ['#0b6e7a', '#b4561b', '#6b7f2a', '#7a4b9a'];
+let geo1 = null;
+
+function setup(c, h) {
+  const dpr = window.devicePixelRatio || 1, w = c.parentElement.clientWidth - 28;
+  c.style.width = w + 'px'; c.style.height = h + 'px'; c.width = Math.round(w * dpr); c.height = Math.round(h * dpr);
+  const ctx = c.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); return { ctx, w, h };
+}
+function niceTicks(lo, hi, n) {
+  const raw = (hi - lo) / n, p = Math.pow(10, Math.floor(Math.log10(raw))), f = raw / p, step = (f < 1.5 ? 1 : f < 3 ? 2 : f < 7 ? 5 : 10) * p;
+  const out = []; for (let t = Math.ceil(lo / step) * step; t <= hi + 1e-9; t += step) out.push(+t.toFixed(10)); return out;
+}
+const tickTxt = k => String(+Math.pow(10, k).toPrecision(3));
+function logAxis(ctx, o) {   // o: {lo, hi, horiz, pos(lg), a, b, len, label}
+  ctx.lineWidth = 1;
+  for (let k = Math.floor(o.lo); k <= Math.ceil(o.hi); k++) for (let m = 1; m < 10; m++) {
+    const lg = k + Math.log10(m); if (lg < o.lo - 1e-9 || lg > o.hi + 1e-9) continue;
+    const q = Math.round(o.pos(lg)) + 0.5, major = m === 1;
+    ctx.strokeStyle = o.grid; ctx.globalAlpha = major ? 1 : 0.45; ctx.beginPath();
+    if (o.horiz) { ctx.moveTo(q, o.a); ctx.lineTo(q, o.b); } else { ctx.moveTo(o.a, q); ctx.lineTo(o.b, q); }
+    ctx.stroke(); ctx.globalAlpha = 1;
+    if (major) { ctx.fillStyle = o.muted; if (o.horiz) { ctx.textAlign = 'center'; ctx.textBaseline = 'top'; ctx.fillText(tickTxt(k), q, o.b + 8); } else { ctx.textAlign = 'right'; ctx.textBaseline = 'middle'; ctx.fillText(tickTxt(k), o.a - 8, q); } }
+  }
+}
+
+function draw() {
+  if (!cur) return;
+  const ink = cssv('--ink'), muted = cssv('--muted'), grid = cssv('--grid'), accent = cssv('--accent'), warm = cssv('--warm');
+  const font = '12px ' + cssv('--font-body'), n = cur.rho.length, show = $('showRho').checked;
+  const w0 = cv1.parentElement.clientWidth - 28;
+
+  // ===== grafik 1: kurva ρa =====
+  let { ctx, w, h } = setup(cv1, Math.max(280, Math.min(400, w0 * 0.55)));
+  const pw = w - L - R, ph = h - T - B, ab = cur.ab;
+  let xlo = Math.floor(Math.log10(ab[0]) + 1e-9), xhi = Math.ceil(Math.log10(ab[ab.length - 1]) - 1e-9); if (xhi <= xlo) xhi = xlo + 1;
+  const vals = Array.from(cur.d).concat(Array.from(cur.dn)); if (show) vals.push(...cur.rho);
+  let ylo = Math.floor(Math.log10(Math.min(...vals)) + 1e-9), yhi = Math.ceil(Math.log10(Math.max(...vals)) - 1e-9); if (yhi <= ylo) yhi = ylo + 1;
+  const X = lg => L + (lg - xlo) / (xhi - xlo) * pw, Y = lg => T + (yhi - lg) / (yhi - ylo) * ph;
+  geo1 = { xlo, xhi };
+  ctx.font = font;
+  logAxis(ctx, { lo: xlo, hi: xhi, horiz: true, pos: X, a: T, b: T + ph, grid, muted });
+  logAxis(ctx, { lo: ylo, hi: yhi, horiz: false, pos: Y, a: L, b: L + pw, grid, muted });
+  ctx.strokeStyle = muted; ctx.strokeRect(L + 0.5, T + 0.5, pw - 1, ph - 1);
+  ctx.fillStyle = muted; ctx.textAlign = 'center'; ctx.textBaseline = 'top'; ctx.fillText('AB/2 (m)', L + pw / 2, T + ph + 24);
+  ctx.save(); ctx.translate(13, T + ph / 2); ctx.rotate(-Math.PI / 2); ctx.textBaseline = 'middle'; ctx.fillText('ρₐ (Ω·m)', 0, 0); ctx.restore();
+
+  if (show) for (let i = 0; i < n; i++) {
+    const y = Y(Math.log10(cur.rho[i]));
+    ctx.strokeStyle = LAYER_COL[i]; ctx.lineWidth = 1.2; ctx.setLineDash([5, 4]); ctx.beginPath(); ctx.moveTo(L, y); ctx.lineTo(L + pw, y); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = LAYER_COL[i]; ctx.textAlign = 'right'; ctx.textBaseline = 'bottom'; ctx.fillText('ρ' + SUB[i], L + pw - 4, y - 2);
+  }
+  ctx.fillStyle = warm;
+  for (let i = 0; i < ab.length; i++) { ctx.beginPath(); ctx.arc(X(Math.log10(ab[i])), Y(Math.log10(cur.dn[i])), 2.8, 0, 7); ctx.fill(); }
+  ctx.beginPath(); ctx.strokeStyle = accent; ctx.lineWidth = 2.6;
+  for (let i = 0; i < ab.length; i++) { const x = X(Math.log10(ab[i])), y = Y(Math.log10(cur.d[i])); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }
+  ctx.stroke();
+  if (state.hover != null) {
+    const x = Math.round(X(Math.log10(ab[state.hover]))) + 0.5;
+    ctx.strokeStyle = ink; ctx.lineWidth = 1; ctx.setLineDash([3, 3]); ctx.beginPath(); ctx.moveTo(x, T); ctx.lineTo(x, T + ph); ctx.stroke(); ctx.setLineDash([]);
+  }
+  // legenda di pita atas
+  ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillStyle = ink;
+  ctx.strokeStyle = accent; ctx.lineWidth = 2.6; ctx.beginPath(); ctx.moveTo(L, 15); ctx.lineTo(L + 22, 15); ctx.stroke(); ctx.fillText('ρₐ tanpa noise', L + 30, 15);
+  ctx.fillStyle = warm; ctx.beginPath(); ctx.arc(L + 150, 15, 3, 0, 7); ctx.fill(); ctx.fillStyle = ink; ctx.fillText('Data dengan noise', L + 160, 15);
+
+  // ===== grafik 2: profil model =====
+  ({ ctx, w, h } = setup(cv2, Math.max(260, Math.min(360, w0 * 0.5))));
+  const ph2 = h - T - B + 10, T2 = 14, ph2b = h - T2 - B;
+  const total = cur.th.reduce((s, x) => s + x, 0), Dmax = Math.max(10, total * 1.5);
+  const rl = cur.rho.map(Math.log10);
+  let rlo = Math.floor(Math.min(...rl) - 0.3), rhi = Math.ceil(Math.max(...rl) + 0.3); if (rhi - rlo < 2) rhi = rlo + 2;
+  const X2 = lg => L + (lg - rlo) / (rhi - rlo) * pw, Y2 = z => T2 + z / Dmax * ph2b;
+  ctx.font = font;
+  logAxis(ctx, { lo: rlo, hi: rhi, horiz: true, pos: X2, a: T2, b: T2 + ph2b, grid, muted });
+  const bounds = [0]; cur.th.forEach(t => bounds.push(bounds[bounds.length - 1] + t)); bounds.push(Dmax);
+  for (let i = 0; i < n; i++) {
+    ctx.globalAlpha = 0.12; ctx.fillStyle = LAYER_COL[i]; ctx.fillRect(L, Y2(bounds[i]), pw, Y2(Math.min(bounds[i + 1], Dmax)) - Y2(bounds[i])); ctx.globalAlpha = 1;
+  }
+  ctx.fillStyle = muted; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+  niceTicks(0, Dmax, 5).forEach(t => { const y = Math.round(Y2(t)) + 0.5; ctx.strokeStyle = grid; ctx.beginPath(); ctx.moveTo(L, y); ctx.lineTo(L + pw, y); ctx.stroke(); ctx.fillText(String(t), L - 8, y); });
+  ctx.strokeStyle = muted; ctx.lineWidth = 1; ctx.strokeRect(L + 0.5, T2 + 0.5, pw - 1, ph2b - 1);
+  ctx.textAlign = 'center'; ctx.textBaseline = 'top'; ctx.fillText('Resistivitas (Ω·m)', L + pw / 2, T2 + ph2b + 24);
+  ctx.save(); ctx.translate(13, T2 + ph2b / 2); ctx.rotate(-Math.PI / 2); ctx.textBaseline = 'middle'; ctx.fillText('Kedalaman (m)', 0, 0); ctx.restore();
+  ctx.beginPath(); ctx.strokeStyle = accent; ctx.lineWidth = 2.6;
+  for (let i = 0; i < n; i++) {
+    const x = X2(rl[i]), y0 = Y2(bounds[i]), y1 = Y2(Math.min(bounds[i + 1], Dmax));
+    i ? ctx.lineTo(x, y0) : ctx.moveTo(x, y0); ctx.lineTo(x, y1);
+  }
+  ctx.stroke();
+  ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+  for (let i = 0; i < n; i++) {
+    const ym = (Y2(bounds[i]) + Y2(Math.min(bounds[i + 1], Dmax))) / 2, x = X2(rl[i]), right = x < L + pw * 0.6;
+    ctx.fillStyle = LAYER_COL[i]; ctx.textAlign = right ? 'left' : 'right';
+    ctx.fillText('ρ' + SUB[i] + ' = ' + fmtRho(cur.rho[i]) + ' Ω·m', x + (right ? 8 : -8), ym);
+  }
+  cv1.setAttribute('aria-label', `Kurva resistivitas semu, ${n} lapisan, maksimum ${Math.max(...cur.d).toFixed(0)} ohm meter`);
+}
+
+// ---------- hover ----------
+function onMove(e) {
+  const rect = cv1.getBoundingClientRect(), pw = rect.width - L - R;
+  const lg = geo1.xlo + (e.clientX - rect.left - L) / pw * (geo1.xhi - geo1.xlo);
+  if (lg < geo1.xlo || lg > geo1.xhi) return onLeave();
+  let best = 0, bd = Infinity;
+  cur.ab.forEach((a, i) => { const dd = Math.abs(Math.log10(a) - lg); if (dd < bd) { bd = dd; best = i; } });
+  state.hover = best;
+  $('hover').textContent = `AB/2 = ${cur.ab[best].toFixed(1)} m, ρₐ = ${cur.d[best].toFixed(1)} Ω·m (data dengan noise: ${cur.dn[best].toFixed(1)} Ω·m)`;
+  draw();
+}
+function onLeave() { state.hover = null; $('hover').textContent = 'Arahkan kursor ke kurva untuk membaca nilainya.'; draw(); }
+cv1.addEventListener('pointermove', onMove); cv1.addEventListener('pointerleave', onLeave);
+
+window.addEventListener('resize', draw);
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', draw);
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(draw);
+
+// ---------- mulai ----------
+syncInputs(); update();
+</script>
+</body>
+</html>
