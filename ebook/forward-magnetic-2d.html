@@ -9,58 +9,27 @@
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Spectral:wght@500;600&display=swap" rel="stylesheet">
 <style>
   :root {
-    --paper: #f3f5f6;
-    --panel: #ffffff;
-    --ink: #14202b;
-    --muted: #5b6b78;
-    --line: #d5dde2;
-    --grid: #e3e9ed;
-    --accent: #0b6e7a;
-    --accent-soft: #d6ebee;
-    --warm: #b4561b;
+    --paper: #f3f5f6; --panel: #ffffff; --ink: #14202b; --muted: #5b6b78; --line: #d5dde2; --grid: #e3e9ed;
+    --accent: #0b6e7a; --accent-soft: #d6ebee; --warm: #b4561b;
     --font-body: "Instrument Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
     --font-head: "Spectral", Georgia, "Times New Roman", serif;
     color-scheme: light;
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --paper: #10171d;
-      --panel: #172029;
-      --ink: #e7eef2;
-      --muted: #93a4b1;
-      --line: #2a3745;
-      --grid: #212d38;
-      --accent: #5cc3d1;
-      --accent-soft: #1d3a42;
-      --warm: #f08a3c;
-      color-scheme: dark;
+      --paper: #10171d; --panel: #172029; --ink: #e7eef2; --muted: #93a4b1; --line: #2a3745; --grid: #212d38;
+      --accent: #5cc3d1; --accent-soft: #1d3a42; --warm: #f08a3c; color-scheme: dark;
     }
   }
   * { box-sizing: border-box; }
   html { -webkit-text-size-adjust: 100%; }
-  body {
-    margin: 0;
-    background: var(--paper);
-    color: var(--ink);
-    font-family: var(--font-body);
-    font-size: 15px;
-    line-height: 1.55;
-  }
+  body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.55; }
   .wrap { max-width: 1200px; margin: 0 auto; padding: 28px 20px 56px; }
   header { max-width: 760px; margin-bottom: 26px; }
-  h1 {
-    font-family: var(--font-head);
-    font-weight: 600;
-    font-size: clamp(28px, 4.2vw, 40px);
-    line-height: 1.12;
-    letter-spacing: -0.01em;
-    margin: 0 0 10px;
-  }
+  h1 { font-family: var(--font-head); font-weight: 600; font-size: clamp(28px, 4.2vw, 40px); line-height: 1.12; letter-spacing: -0.01em; margin: 0 0 10px; }
   header p { margin: 0; color: var(--muted); max-width: 62ch; }
-
   .layout { display: grid; grid-template-columns: 330px minmax(0, 1fr); gap: 28px; align-items: start; }
   @media (max-width: 880px) { .layout { grid-template-columns: 1fr; } }
-
   .controls { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 6px 18px 18px; }
   fieldset { border: 0; border-top: 1px solid var(--line); margin: 0; padding: 16px 0 4px; min-inline-size: 0; }
   fieldset:first-of-type { border-top: 0; }
@@ -71,19 +40,12 @@
   .row label { font-size: 14px; }
   .row output { font-variant-numeric: tabular-nums; color: var(--accent); font-weight: 600; font-size: 14px; }
   input[type=range] { width: 100%; margin: 4px 0 0; accent-color: var(--accent); }
-  fieldset:disabled { opacity: 0.45; }
   .check { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; font-size: 14px; }
-  .check input { accent-color: var(--accent); width: 16px; height: 16px; margin: 0; }
+  .check input { accent-color: var(--accent); width: 16px; height: 16px; margin: 0; flex: none; }
   .btns { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 4px; }
-  button {
-    font: inherit; font-size: 14px; color: var(--ink); background: transparent;
-    border: 1px solid var(--line); border-radius: 4px; padding: 7px 12px; cursor: pointer;
-  }
+  button { font: inherit; font-size: 14px; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 4px; padding: 7px 12px; cursor: pointer; }
   button:hover { border-color: var(--accent); color: var(--accent); }
-  button.primary { background: var(--accent); border-color: var(--accent); color: var(--paper); }
-  button.primary:hover { color: var(--paper); filter: brightness(1.08); }
   :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-
   .charts h2 { font-family: var(--font-head); font-size: 18px; font-weight: 600; margin: 0 0 6px; }
   .chart-block { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 14px 14px 8px; margin-bottom: 18px; }
   canvas { display: block; width: 100%; touch-action: pan-y; }
@@ -91,13 +53,10 @@
   .stats li { font-size: 14px; color: var(--muted); }
   .stats b { color: var(--ink); font-variant-numeric: tabular-nums; font-weight: 600; }
   #hover { margin: 0 0 4px; font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums; min-height: 1.5em; }
-
   .notes { margin-top: 34px; max-width: 760px; }
   .notes h2 { font-family: var(--font-head); font-size: 22px; margin: 0 0 8px; }
-  .notes p, .notes li { color: var(--ink); }
   .notes ul { padding-left: 20px; }
-  .eq { font-family: "Cambria Math", "STIX Two Math", Georgia, serif; background: var(--panel); border: 1px solid var(--line);
-        border-radius: 4px; padding: 10px 14px; margin: 10px 0; overflow-x: auto; white-space: nowrap; }
+  .eq { font-family: "Cambria Math", "STIX Two Math", Georgia, serif; background: var(--panel); border: 1px solid var(--line); border-radius: 4px; padding: 10px 14px; margin: 10px 0; overflow-x: auto; white-space: nowrap; }
   small { color: var(--muted); }
 </style>
 </head>
@@ -146,44 +105,38 @@
     <h2>Cara membaca</h2>
     <ul>
       <li>Garis tebal adalah anomali ΔT tanpa noise, titik adalah data dengan noise Gaussian (simpangan baku = persentase noise × amplitudo maksimum).</li>
-      <li>Beda utama dengan gravitasi: respons magnetik bergantung arah. Ubah <b>inklinasi</b> atau <b>azimuth profil</b>: kurva bergeser, berbalik tanda, dan di kutub magnet (I = ±90°) anomali menjadi simetris positif di atas tubuh bijih — dasar metode reduksi ke kutub.</li>
-      <li>Suseptibilitas negatif memberi anomali negatif. Makin dalam sumber, anomali meluruh jauh lebih cepat daripada gravitasi (∝ 1/d² vs 1/d), sehingga magnetik peka terhadap sumber dangkal.</li>
+      <li>Respons magnetik bergantung arah. Ubah <b>inklinasi</b> atau <b>azimuth profil</b>: kurva bergeser dan berbalik tanda. Di kutub magnet (I = ±90°) anomali simetris di atas tubuh bersuseptibilitas positif, dasar metode reduksi ke kutub.</li>
+      <li>Suseptibilitas negatif memberi anomali negatif. Makin dalam sumber, anomali meluruh lebih cepat daripada gravitasi (∝ 1/d² vs 1/d), sehingga magnetik peka terhadap sumber dangkal.</li>
+      <li>Kotak centang "faktor kode Python" mengganti konstanta B₀/2π (χ dalam SI) dengan 2·B₀ seperti fungsi <code>mag2d</code> (χ efektif dalam satuan cgs, selisih 4π).</li>
     </ul>
-    <div class="eq">M = (B₀/μ₀)·χ·L̂ , &nbsp; ΔT = H<sub>x</sub>L<sub>x</sub> + H<sub>z</sub>L<sub>z</sub> (nT)</div>
-    <small>Kernel: integral analitik persegi panjang (Telford dkk.) pada grid sel 100 m × 100 m, penampang 8 km × 2 km.</small>
+    <div class="eq">ΔT = c·B₀·Σ χ<sub>j</sub>·[ L<sub>x</sub>L<sub>z</sub>·E + (L<sub>z</sub>² − L<sub>x</sub>²)·F ] , &nbsp; c = 1/2π (SI) atau 2 (kode Python)</div>
+    <small>Kernel: prisma 2D tak hingga ke arah strike (Won &amp; Bevis / Talwani), E = suku logaritma, F = selisih sudut pandang sisi atas dan bawah, pada grid sel 100 m × 100 m, penampang 8 km × 2 km. L = (cos I cos A, sin I) arah medan dan magnetisasi induksi.</small>
   </section>
 </div>
 
 <script>
 // ==PHYSICS-START
-const MU0 = 1.25663706e-6, NT = 1e9;              // SI, keluaran nT
 const NX = 80, NZ = 20, DX = 100, DXKM = 0.1;     // sel 100 m, grid 8 km x 2 km
 const M = NX * NZ;
-const xobs = Float64Array.from({ length: NX }, (_, i) => (i + 0.5) * DX);
+const xobs = Float64Array.from({ length: NX }, (_, i) => (i + 0.5) * DX);   // titik ukur = pusat kolom sel, z = 0
 
-// fungsi bantu integral rectangle; xi = x - x_obs, z = kedalaman (ke bawah positif)
-function Fm(xi, z) { const r2 = xi * xi + z * z; return r2 > 0 ? -0.5 * Math.log(r2) : 0; }
-function Gm(xi, z) { const r2 = xi * xi + z * z; return r2 > 0 ? z * Math.atan2(xi, z) + 0.5 * xi * Math.log(r2) : 0; }
-
-// KU[j*NX+i], KV[j*NX+i]: U=∫∫u/r³ dx dz dan V=∫∫w/r³ dx dz sel j dilihat dari titik i (tanpa dimensi)
-// u = x_sel − x_titik, w = z_sel (titik ukur di permukaan)
+// Kernel geometri murni (tanpa dimensi), sama dengan mag2d pada kode Python:
+// E = ln[(z2²+x+²)(z1²+x-²) / ((z1²+x+²)(z2²+x-²))],  F = θ(z1) − θ(z2),  θ(z) = atan2(2bz, z²+d²−b²)
+// d = x_obs − x_pusat_sel, x± = d ± b, b = setengah lebar sel, z1/z2 = sisi atas/bawah sel
 function buildKernel() {
-  const KU = new Float64Array(M * NX), KV = new Float64Array(M * NX);
+  const KE = new Float64Array(M * NX), KF = new Float64Array(M * NX), b = DX / 2;
   for (let iz = 0; iz < NZ; iz++) {
-    const z1 = iz * DX, z2 = (iz + 1) * DX;
+    const z1 = Math.max(iz * DX, 1e-6), z2 = (iz + 1) * DX;
     for (let ix = 0; ix < NX; ix++) {
-      const j = iz * NX + ix, x1 = ix * DX, x2 = (ix + 1) * DX;
+      const base = (iz * NX + ix) * NX, x0 = xobs[ix];
       for (let i = 0; i < NX; i++) {
-        const a = x1 - xobs[i], b = x2 - xobs[i];
-        const dFdx = Fm(b, z2) - Fm(a, z2) - Fm(b, z1) + Fm(a, z1);
-        const dGdx = Gm(b, z2) - Gm(a, z2) - Gm(b, z1) + Gm(a, z1);
-        const dFdz = Fm(b, z2) - Fm(b, z1) - Fm(a, z2) + Fm(a, z1);
-        KU[j * NX + i] = dGdx - z1 * dFdx;   // U
-        KV[j * NX + i] = -dFdz + a * dFdx;   // V
+        const d = xobs[i] - x0, xp = d + b, xm = d - b;
+        KE[base + i] = Math.log(((z2 * z2 + xp * xp) * (z1 * z1 + xm * xm)) / ((z1 * z1 + xp * xp) * (z2 * z2 + xm * xm)));
+        KF[base + i] = Math.atan2(2 * b * z1, z1 * z1 + d * d - b * b) - Math.atan2(2 * b * z2, z2 * z2 + d * d - b * b);
       }
     }
   }
-  return { KU, KV };
+  return { KE, KF };
 }
 
 function fillCell(m, row, col, chi) {
@@ -205,22 +158,16 @@ function buildPrism(p, inclined) {
   return m;
 }
 
-// Medan terinduksi sejajar L̂: M_vec = (B0/mu0)*chi*L. Anomali sumbu-x/z per satuan chi:
-// Hx = k*(Lx*V − Lz*U), Hz = −k*(Lx*U + Lz*V), k = mu0/(4pi)*B0(nT→T)*NT
-// ΔT = proyeksi pada L̂: ΔT = Hx*Lx + Hz*Lz
-function forwardTI(U_, V_, m, B0, Lx, Lz) {
-  const d = new Float64Array(NX);
-  const k = B0 * 1e-9 / (4 * Math.PI) * NT;                    // (mu0/4π)*(B0/μ0)*1e9 = B0[nT]/(4π)
+// Magnetisasi induksi M = χ·B0·L (Lx = cos I cos A, Lz = sin I, z ke bawah positif).
+// Medan: Bx ∝ Lz·E/2 − Lx·F, Bz ∝ Lx·E/2 + Lz·F. Proyeksi ke L:
+// ΔT = c·B0·χ·[Lx·Lz·E + (Lz² − Lx²)·F],  c = 1/(2π) (SI)  atau  2 (konvensi kode Python)
+function forwardTI(KE, KF, m, B0, Lx, Lz, c) {
+  const d = new Float64Array(NX), e = Lx * Lz, f = Lz * Lz - Lx * Lx, s = c * B0;
   for (let j = 0; j < M; j++) {
     const v = m[j];
     if (v === 0) continue;
-    const base = j * NX;
-    for (let i = 0; i < NX; i++) {
-      const U = U_[base + i], V = V_[base + i];
-      const Hx = Lx * V - Lz * U;                              // per satuan (B0/μ0·chi)
-      const Hz = -(Lx * U + Lz * V);
-      d[i] += k * v * (Hx * Lx + Hz * Lz);
-    }
+    const base = j * NX, sv = s * v;
+    for (let i = 0; i < NX; i++) d[i] += sv * (e * KE[base + i] + f * KF[base + i]);
   }
   return d;
 }
@@ -245,12 +192,12 @@ const SPEC1 = [
 const SPEC2 = SPEC1.concat([{ key: 'dip', label: 'Geser per lapisan (sel)', min: -2, max: 2, step: 0.5 }]);
 const SPECN = [{ key: 'noise', label: 'Noise (% amplitudo maks)', min: 0, max: 15, step: 0.5 }];
 
-const state = { p1on: true, p2on: false, p1: { ...DEF1 }, p2: { ...DEF2 }, f: { ...DEFF }, noise: 5, seed: 7, hover: null };
+const state = { p1on: true, p2on: false, p1: { ...DEF1 }, p2: { ...DEF2 }, f: { ...DEFF }, noise: 5, seed: 7, hover: null, py: false };
 const inputs = {};
 
 function decimals(step) { const s = String(step); return s.includes('.') ? s.split('.')[1].length : 0; }
 
-function addSliders(container, spec, group, obj) {
+function addSliders(container, spec, group) {
   spec.forEach(s => {
     const id = group + '-' + s.key;
     const row = document.createElement('div'); row.className = 'row';
@@ -285,7 +232,15 @@ addSliders(document.getElementById('fs-p1'), SPEC1, 'p1');
 addSliders(document.getElementById('fs-p2'), SPEC2, 'p2');
 addSliders(document.getElementById('noise-rows'), SPECN, 'n');
 
-// kotak centang untuk mengaktifkan prisma
+// kotak centang konvensi satuan kode Python
+(function () {
+  const lab = document.createElement('label'); lab.className = 'check';
+  const cb = document.createElement('input'); cb.type = 'checkbox'; cb.id = 'pyUnits';
+  cb.addEventListener('change', () => { state.py = cb.checked; update(); });
+  lab.append(cb, document.createTextNode('Pakai faktor kode Python (2·B₀·χ)'));
+  document.getElementById('fs-field').append(lab);
+})();
+
 function addToggle(fsId, key, text) {
   const fs = document.getElementById(fsId);
   const lab = document.createElement('label'); lab.className = 'check';
@@ -293,7 +248,7 @@ function addToggle(fsId, key, text) {
   cb.addEventListener('change', () => { state[key] = cb.checked; applyDisabled(); update(); });
   lab.append(cb, document.createTextNode(text));
   const legend = fs.querySelector('legend');
-  const wrap = document.createElement('div'); wrap.className = 'toggle-wrap'; wrap.append(lab);
+  const wrap = document.createElement('div'); wrap.append(lab);
   legend.after(wrap);
 }
 addToggle('fs-p1', 'p1on', 'Aktif');
@@ -344,8 +299,9 @@ function update() {
   const m1 = state.p1on ? buildPrism(state.p1, false) : new Float64Array(M);
   const m2 = state.p2on ? buildPrism(state.p2, true) : new Float64Array(M);
   const { Lx, Lz } = dirVec(state.f);
-  const d1 = forwardTI(K.KU, K.KV, m1, state.f.b0, Lx, Lz);
-  const d2 = forwardTI(K.KU, K.KV, m2, state.f.b0, Lx, Lz);
+  const c = state.py ? 2 : 1 / (2 * Math.PI);
+  const d1 = forwardTI(K.KE, K.KF, m1, state.f.b0, Lx, Lz, c);
+  const d2 = forwardTI(K.KE, K.KF, m2, state.f.b0, Lx, Lz, c);
   const d = new Float64Array(NX), m = new Float64Array(M);
   let amp = 0;
   for (let i = 0; i < NX; i++) { d[i] = d1[i] + d2[i]; amp = Math.max(amp, Math.abs(d[i])); }
