@@ -16,6 +16,7 @@
     "file": "ebook/modul-gravitasi.md",
     "pdf": "#"
   },
+  
   {
     "id": "forward-gravity-2d",
     "judul": {
@@ -34,6 +35,7 @@
     "tipe": "html",
     "pdf": "#"
   },
+  
   {
     "id": "forward-magnetic-2d",
     "judul": {
@@ -49,6 +51,44 @@
       "interaktif"
     ],
     "file": "ebook/forward-magnetic-2d.html",
+    "tipe": "html",
+    "pdf": "#"
+  },
+
+  {
+    "id": "forward-ves1d",
+    "judul": {
+      "id": "Forward Modelling Vertical Electrical Sounding (VES)",
+      "en": "Forward Modelling Vertical Electrical Sounding (VES)"
+    },
+    "deskripsi": {
+      "id": "Simulasi respons apparent resistivity dari medium berlapis homogen.",
+      "en": "Simulasi respons apparent resistivity dari medium berlapis homogen."
+    },
+    "tag": [
+      "VES",
+      "Forward"
+    ],
+    "file": "ebook/forward-ves1d.html",
+    "tipe": "html",
+    "pdf": "#"
+  },
+
+{
+    "id": "inversion-ves1d-gwo",
+    "judul": {
+      "id": "Inversion Modelling Vertical Electrical Sounding (VES) using Grey Wolf Optimizer (GWO)",
+      "en": "Inversion Modelling Vertical Electrical Sounding (VES)using Grey Wolf Optimizer (GWO)"
+    },
+    "deskripsi": {
+      "id": "Pemodelan inversi resistivitas 1D dari data VES menggunakan algoritma Grey Wolf Optimizer (GWO).",
+      "en": "Pemodelan inversi resistivitas 1D dari data VES menggunakan algoritma Grey Wolf Optimizer (GWO)."
+    },
+    "tag": [
+      "VES",
+      "Inversion"
+    ],
+    "file": "ebook/inversion-ves1d-gwo.html",
     "tipe": "html",
     "pdf": "#"
   }
