@@ -57,69 +57,105 @@
   .notes ul { padding-left:20px; }
   .eq { font-family:"Cambria Math","STIX Two Math",Georgia,serif; background:var(--panel); border:1px solid var(--line); border-radius:4px; padding:10px 14px; margin:10px 0; overflow-x:auto; white-space:nowrap; }
   small { color:var(--muted); }
+
+  /* ===== tata letak ringkas: satu layar ===== */
+  .top { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px; max-width:none; margin-bottom:12px; }
+  .top h1 { font-size:clamp(20px,3vw,26px); margin:0; }
+  .tools { display:flex; flex-wrap:wrap; gap:8px; }
+  .tools button { padding:6px 12px; }
+  .layout { align-items:stretch; }
+  .layout.hide-ctrl { grid-template-columns:minmax(0,1fr); }
+  .layout.hide-ctrl .controls { display:none; }
+  .charts { display:grid; grid-template-columns:minmax(0,1fr); gap:12px; }
+  .chart-block { margin-bottom:0; display:flex; flex-direction:column; min-width:0; }
+  .chart-block h2 { font-size:15px; margin:0 0 4px; }
+  .ct { display:flex; justify-content:space-between; align-items:baseline; gap:8px; }
+  .ct .check { margin:0 0 4px; font-size:13px; }
+  .cwrap { position:relative; height:280px; }
+  canvas { position:absolute; left:0; top:0; }
+  .res .stats { margin:0 0 8px; gap:2px 16px; }
+  .res .stats li { font-size:13px; }
+  .tbl { margin:0; }
+  table { font-size:13px; } th, td { padding:4px 8px; }
+  details.notes { margin-top:14px; max-width:none; border-top:1px solid var(--line); padding-top:10px; font-size:14px; }
+  details.notes summary { cursor:pointer; font-family:var(--font-head); font-weight:600; font-size:17px; }
+  details.notes p { margin:8px 0; color:var(--muted); }
+  @media (min-width:900px) and (min-height:620px) {
+    html, body { height:100%; overflow:hidden; }
+    .wrap { height:100vh; max-width:none; padding:10px 14px; display:flex; flex-direction:column; }
+    .top { margin-bottom:8px; }
+    .layout { flex:1; min-height:0; grid-template-columns:310px minmax(0,1fr); gap:12px; }
+    .layout.hide-ctrl { grid-template-columns:minmax(0,1fr); }
+    .controls { height:100%; overflow-y:auto; padding:4px 14px 14px; }
+    .row { margin-bottom:8px; }
+    fieldset { padding:10px 0 2px; }
+    legend { font-size:15px; margin-bottom:6px; }
+    .charts { height:100%; min-height:0; grid-template-columns:minmax(0,1fr) minmax(0,1fr); grid-template-rows:minmax(0,1fr) minmax(0,1fr); gap:10px; }
+    .chart-block { min-height:0; padding:8px 10px 6px; }
+    .cwrap { flex:1; min-height:0; height:auto; }
+    .res { overflow:auto; }
+  }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <header>
-    <h1>Inversi VES 1D dengan Grey Wolf Optimizer</h1>
-    <p>Buat data sintetik dari model berlapis, lalu cari kembali resistivitas dan ketebalan lapisan dengan algoritma GWO. Semuanya dihitung di browser.</p>
+  <header class="top">
+    <h1>Inversi VES 1D · Grey Wolf Optimizer</h1>
+    <div class="tools">
+      <button type="button" class="primary" id="run">▶ Jalankan inversi</button>
+      <button type="button" id="stop" disabled>Berhenti</button>
+      <button type="button" id="reset">Reset</button>
+      <button type="button" id="toggle" aria-expanded="true">Sembunyikan parameter</button>
+    </div>
   </header>
 
-  <div class="layout">
-    <form class="controls" onsubmit="return false">
-      <fieldset>
-        <legend>Contoh model sebenarnya</legend>
-        <div class="btns">
-          <button type="button" data-p="H">Tipe H</button><button type="button" data-p="K">Tipe K</button>
-          <button type="button" data-p="Q">Tipe Q</button><button type="button" data-p="A">Tipe A</button>
-        </div>
-        <div class="btns">
-          <button type="button" data-p="m2">2 lapis</button><button type="button" data-p="m3">3 lapis (50/20/300)</button>
-        </div>
-      </fieldset>
-      <fieldset id="fs-true"><legend>Model sebenarnya (data sintetik)</legend></fieldset>
-      <fieldset id="fs-ab"><legend>Data observasi</legend></fieldset>
-      <fieldset id="fs-gwo">
-        <legend>Parameter GWO</legend>
-        <div class="sel"><label for="amode">Penurunan parameter a</label>
-          <select id="amode"><option value="quad">Kuadratik: a = 2 − 2·iter²/niter² (mGWO)</option><option value="lin">Linear: a = 2 − 2·iter/niter</option></select></div>
-        <div class="sel"><label for="wmode">Bobot posisi baru</label>
-          <select id="wmode"><option value="mean">Rata-rata (X₁+X₂+X₃)/3</option><option value="w321">Berbobot (3X₁+2X₂+X₃)/6 (mGWO)</option></select></div>
-        <div class="sel"><label for="mis">Fungsi misfit</label>
-          <select id="mis"><option value="rms">RMS galat relatif (%)</option><option value="mape">Rata-rata galat relatif (%)</option></select></div>
-      </fieldset>
-      <fieldset>
-        <legend>Jalankan</legend>
-        <div class="btns">
-          <button type="button" class="primary" id="run">Jalankan inversi</button>
-          <button type="button" id="stop" disabled>Berhenti</button>
-          <button type="button" id="reset">Reset</button>
-        </div>
-        <label class="check"><input type="checkbox" id="logc" checked> Skala log pada kurva konvergensi</label>
-      </fieldset>
-    </form>
+  <div class="layout" id="layout">
+    <aside class="controls" id="controls">
+      <form onsubmit="return false">
+        <fieldset>
+          <legend>Contoh model sebenarnya</legend>
+          <div class="btns">
+            <button type="button" data-p="H">Tipe H</button><button type="button" data-p="K">Tipe K</button>
+            <button type="button" data-p="Q">Tipe Q</button><button type="button" data-p="A">Tipe A</button>
+          </div>
+          <div class="btns">
+            <button type="button" data-p="m2">2 lapis</button><button type="button" data-p="m3">3 lapis (50/20/300)</button>
+          </div>
+        </fieldset>
+        <fieldset id="fs-true"><legend>Model sebenarnya (data sintetik)</legend></fieldset>
+        <fieldset id="fs-ab"><legend>Data observasi</legend></fieldset>
+        <fieldset id="fs-gwo">
+          <legend>Parameter GWO</legend>
+          <div class="sel"><label for="amode">Penurunan parameter a</label>
+            <select id="amode"><option value="quad">Kuadratik: a = 2 − 2·iter²/niter² (mGWO)</option><option value="lin">Linear: a = 2 − 2·iter/niter</option></select></div>
+          <div class="sel"><label for="wmode">Bobot posisi baru</label>
+            <select id="wmode"><option value="mean">Rata-rata (X₁+X₂+X₃)/3</option><option value="w321">Berbobot (3X₁+2X₂+X₃)/6 (mGWO)</option></select></div>
+          <div class="sel"><label for="mis">Fungsi misfit</label>
+            <select id="mis"><option value="rms">RMS galat relatif (%)</option><option value="mape">Rata-rata galat relatif (%)</option></select></div>
+        </fieldset>
+      </form>
+
+      <details class="notes">
+        <summary>Cara membaca</summary>
+        <p>Buat data sintetik dari model berlapis, lalu cari kembali resistivitas dan ketebalan lapisan dengan algoritma GWO. Semuanya dihitung di browser.</p>
+        <ul>
+          <li>Titik adalah data observasi sintetik (dengan noise Gaussian multiplikatif jika diaktifkan). Garis jingga adalah respons model terbaik (serigala α) pada iterasi berjalan.</li>
+          <li>Model sebenarnya digambar sebagai tangga solid, model hasil inversi sebagai tangga putus-putus. Lapisan terakhir tidak punya ketebalan karena meluas tak hingga.</li>
+          <li>Kurva konvergensi menampilkan misfit α, β, δ (tiga solusi terbaik) dan ω, yaitu misfit serigala terakhir dalam populasi setelah bergerak, seperti pada kode MATLAB.</li>
+          <li>Inversi VES tidak unik. Dua model berbeda, terutama dengan lapisan tipis atau kontras kecil, bisa menghasilkan kurva yang hampir sama (ekuivalensi), jadi misfit kecil belum menjamin model sama dengan model sebenarnya.</li>
+        </ul>
+        <div class="eq">A = 2a·r₁ − a , C = 2r₂ , D = |C·X<sub>pemimpin</sub> − X| , X<sub>k</sub> = X<sub>pemimpin</sub> − A·D , X<sub>baru</sub> = ΣwₖXₖ</div>
+        <small>Pemimpin k = α, β, δ. Batas pencarian ρ dan h dijaga dengan memotong nilai di [min, maks]. Forward memakai rekursi resistivitas dan filter 13 koefisien yang sama dengan halaman forward VES 1D.</small>
+      </details>
+    </aside>
 
     <main class="charts">
-      <div class="chart-block"><h2>Kurva resistivitas semu</h2><canvas id="c1" role="img" aria-label="Data observasi dan kurva hasil inversi"></canvas></div>
-      <div class="chart-block"><h2>Model resistivitas terhadap kedalaman</h2><canvas id="c2" role="img" aria-label="Model sebenarnya dan model hasil inversi"></canvas></div>
-      <div class="chart-block"><h2>Kurva konvergensi</h2><canvas id="c3" role="img" aria-label="Misfit alpha, beta, delta dan omega terhadap iterasi"></canvas></div>
-      <ul class="stats" id="stats"></ul>
-      <div class="tbl" id="res"></div>
+      <section class="chart-block"><h2>Kurva resistivitas semu</h2><div class="cwrap"><canvas id="c1" role="img" aria-label="Data observasi dan kurva hasil inversi"></canvas></div></section>
+      <section class="chart-block"><h2>Model resistivitas terhadap kedalaman</h2><div class="cwrap"><canvas id="c2" role="img" aria-label="Model sebenarnya dan model hasil inversi"></canvas></div></section>
+      <section class="chart-block"><div class="ct"><h2>Kurva konvergensi</h2><label class="check"><input type="checkbox" id="logc" checked> skala log</label></div><div class="cwrap"><canvas id="c3" role="img" aria-label="Misfit alpha, beta, delta dan omega terhadap iterasi"></canvas></div></section>
+      <section class="chart-block res"><h2>Hasil inversi</h2><ul class="stats" id="stats"></ul><div class="tbl" id="res"></div></section>
     </main>
   </div>
-
-  <section class="notes">
-    <h2>Cara membaca</h2>
-    <ul>
-      <li>Titik adalah data observasi sintetik (dengan noise Gaussian multiplikatif jika diaktifkan). Garis jingga adalah respons model terbaik (serigala α) pada iterasi berjalan.</li>
-      <li>Model sebenarnya digambar sebagai tangga solid, model hasil inversi sebagai tangga putus-putus. Lapisan terakhir tidak punya ketebalan karena meluas tak hingga.</li>
-      <li>Kurva konvergensi menampilkan misfit α, β, δ (tiga solusi terbaik) dan ω, yaitu misfit serigala terakhir dalam populasi setelah bergerak, seperti pada kode MATLAB.</li>
-      <li>Inversi VES tidak unik. Dua model berbeda, terutama dengan lapisan tipis atau kontras kecil, bisa menghasilkan kurva yang hampir sama (ekuivalensi), jadi misfit kecil belum menjamin model sama dengan model sebenarnya.</li>
-    </ul>
-    <div class="eq">A = 2a·r₁ − a , C = 2r₂ , D = |C·X<sub>pemimpin</sub> − X| , X<sub>k</sub> = X<sub>pemimpin</sub> − A·D , X<sub>baru</sub> = ΣwₖXₖ</div>
-    <small>Pemimpin k = α, β, δ. Batas pencarian ρ dan h dijaga dengan memotong nilai di [min, maks]. Forward memakai rekursi resistivitas dan filter 13 koefisien yang sama dengan halaman forward VES 1D.</small>
-  </section>
 </div>
 
 <script>
@@ -289,11 +325,11 @@ $('stop').addEventListener('click', () => { stopRun(); elapsed = performance.now
 $('reset').addEventListener('click', invalidate);
 
 // ---------- menggambar ----------
-const L = 58, R = 16, T = 34, B = 40, T2 = 14;
+const L = 58, R = 28, T = 34, B = 40, T2 = 14;
 const cssv = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 const tickTxt = k => String(+Math.pow(10, k).toPrecision(3));
-function setup(c, h) {
-  const dpr = window.devicePixelRatio || 1, w = c.parentElement.clientWidth - 28;
+function setup(c) {
+  const dpr = window.devicePixelRatio || 1, w = c.parentElement.clientWidth, h = c.parentElement.clientHeight;
   c.style.width = w + 'px'; c.style.height = h + 'px'; c.width = Math.round(w * dpr); c.height = Math.round(h * dpr);
   const ctx = c.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); return { ctx, w, h };
 }
@@ -339,13 +375,13 @@ function stair(ctx, r, t, X, Y, big, col, dash, wd) {
 function clip(ctx, x, y, w, h) { ctx.save(); ctx.beginPath(); ctx.rect(x, y, w, h); ctx.clip(); }
 
 function draw() {
-  if (!cur) return;
+  if (!cur || !$('c1').parentElement.clientWidth || !$('c1').parentElement.clientHeight) return;
   const ink = cssv('--ink'), muted = cssv('--muted'), grid = cssv('--grid'), accent = cssv('--accent'), warm = cssv('--warm');
   const font = '12px ' + cssv('--font-body'), w0 = $('c1').parentElement.clientWidth - 28, inv = gwo && gwo.lead[0].r ? gwo.lead[0] : null;
   const { ab, obs } = cur, ni = gwo ? gwo.cfg.ni : I.ni;
 
   // ===== 1: kurva ρa =====
-  let { ctx, w, h } = setup($('c1'), Math.max(260, Math.min(380, w0 * 0.5)));
+  let { ctx, w, h } = setup($('c1'));
   let pw = w - L - R, ph = h - T - B; ctx.font = font;
   const xlo = Math.floor(Math.log10(ab[0]) + 1e-9); let xhi = Math.ceil(Math.log10(ab[ab.length - 1]) - 1e-9); if (xhi <= xlo) xhi = xlo + 1;
   const ylo = Math.floor(Math.log10(Math.min(...obs)) - 0.15), yhi = Math.max(ylo + 1, Math.ceil(Math.log10(Math.max(...obs)) + 0.15));
@@ -362,7 +398,7 @@ function draw() {
   ctx.restore(); legend(ctx, [['Data observasi', accent, 'dot'], ['Kurva GWO (α)', warm, 'line']], ink);
 
   // ===== 2: model =====
-  ({ ctx, w, h } = setup($('c2'), Math.max(260, Math.min(360, w0 * 0.5)))); ctx.font = font;
+  ({ ctx, w, h } = setup($('c2'))); ctx.font = font;
   const ph2 = h - T2 - B, sum = cur.th.reduce((s, x) => s + x, 0), Dmax = Math.max(10, sum * 1.6);
   const rlo = Math.floor(Math.log10(Math.min(I.rmin, ...cur.rho)) + 1e-9), rhi = Math.max(rlo + 1, Math.ceil(Math.log10(Math.max(I.rmax, ...cur.rho)) - 1e-9));
   const X2 = lg => L + (lg - rlo) / (rhi - rlo) * pw, Y2 = z => T2 + z / Dmax * ph2;
@@ -378,7 +414,7 @@ function draw() {
   ctx.strokeStyle = warm; ctx.setLineDash([6, 4]); ctx.beginPath(); ctx.moveTo(L + 8, T2 + 30); ctx.lineTo(L + 28, T2 + 30); ctx.stroke(); ctx.setLineDash([]); ctx.fillText('Model GWO', L + 34, T2 + 30);
 
   // ===== 3: konvergensi =====
-  ({ ctx, w, h } = setup($('c3'), Math.max(240, Math.min(320, w0 * 0.45)))); ctx.font = font;
+  ({ ctx, w, h } = setup($('c3'))); ctx.font = font;
   ph = h - T - B; const c = gwo ? gwo.curves : { a: [], b: [], d: [], o: [] }, lg = $('logc').checked;
   const ser = [[c.a, warm, 'α (alpha)'], [c.b, accent, 'β (beta)'], [c.d, '#a24fb3', 'δ (delta)'], [c.o, '#5a9a3c', 'ω (omega)']];
   const fin = ser.flatMap(s => s[0]).filter(isFinite), mx = fin.length ? Math.max(...fin) : 1;
@@ -415,7 +451,14 @@ function render() {
   $('res').innerHTML = html + '</tbody></table>';
 }
 
-window.addEventListener('resize', () => { if (cur) draw(); });
+let pend = 0;
+const ro = new ResizeObserver(() => { if (pend) return; pend = requestAnimationFrame(() => { pend = 0; if (cur) draw(); }); });
+document.querySelectorAll('.cwrap').forEach(e => ro.observe(e));
+$('toggle').addEventListener('click', () => {
+  const hid = $('layout').classList.toggle('hide-ctrl');
+  $('toggle').textContent = hid ? 'Tampilkan parameter' : 'Sembunyikan parameter';
+  $('toggle').setAttribute('aria-expanded', String(!hid));
+});
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { if (cur) draw(); });
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if (cur) draw(); });
 
