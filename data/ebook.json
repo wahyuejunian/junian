@@ -91,5 +91,26 @@
     "file": "ebook/inversion-ves1d-gwo.html",
     "tipe": "html",
     "pdf": "#"
+  },
+
+  {
+    "id": "aliran-arus",
+    "judul": {
+      "id": "Aliran arus dan potensial terhadap medium konduktif dan resistif",
+      "en": "Current and potential flow in conductive and resistive media"
+    },
+    "deskripsi": {
+      "id": "Aliran arus dan potensial terhadap medium konduktif dan resistif",
+      "en": "Current and potential flow in conductive and resistive media"
+    },
+    "tag": [
+      "Current",
+      "Potential",
+      "conductive",
+      "resistive"
+    ],
+    "file": "ebook/aliran-arus-konduktif-resistif.html",
+    "tipe": "html",
+    "pdf": "#"
   }
 ]
