@@ -107,9 +107,11 @@ for(let sd=0;sd<2;sd++){for(;;){const e=ln[ln.length-1],k2=(adj.get(e)||[]).find
 ln.forEach((e,k)=>{const c=pt.get(e);k?g.lineTo(c[0],c[1]):g.moveTo(c[0],c[1])})});
 g.stroke()});g.setLineDash([])}
 function curs(g,M,p,X,Y,col,lw,dash){g.strokeStyle=col;g.lineWidth=lw;g.setLineDash(dash);const NL=14;
-for(let n=0;n<NL;n++){const an=(n+.5)*Math.PI/NL;let x=p.a+.6*Math.cos(an),z=.6*Math.sin(an),ok=false;g.beginPath();g.moveTo(X(x),Y(z));
-for(let it=0;it<2500;it++){const ra=Math.hypot(x-p.a,z),rb=Math.hypot(x-p.b,z);if(rb<1){ok=true;break}const hs=Math.min(2.5,Math.max(.2,.06*Math.min(ra,rb))),d1=M.D(x,z),d2=M.D(x+d1[0]*hs/2,Math.max(0,z+d1[1]*hs/2));x+=d2[0]*hs;z=Math.max(0,z+d2[1]*hs);g.lineTo(X(x),Y(z));if(z>150||x<-150||x>250)break}
-if(ok)g.lineTo(X(p.b),Y(0));g.stroke()}g.setLineDash([])}
+for(let n=0;n<NL;n++){const an=(n+.5)*Math.PI/NL;let x=p.a+.6*Math.cos(an),z=.6*Math.sin(an),ok=false;const pts=[[x,z]];
+for(let it=0;it<2500;it++){const ra=Math.hypot(x-p.a,z),rb=Math.hypot(x-p.b,z);if(rb<1){ok=true;break}const hs=Math.min(2.5,Math.max(.2,.06*Math.min(ra,rb))),d1=M.D(x,z),d2=M.D(x+d1[0]*hs/2,Math.max(0,z+d1[1]*hs/2));x+=d2[0]*hs;z=Math.max(0,z+d2[1]*hs);pts.push([x,z]);if(z>150||x<-150||x>250)break}
+if(ok)pts.push([p.b,0]);
+const dr=m=>{g.beginPath();pts.forEach((q,i)=>{const px=X(m?p.a+p.b-q[0]:q[0]),py=Y(q[1]);i?g.lineTo(px,py):g.moveTo(px,py)});g.stroke()};
+dr(false);if(!ok)dr(true)}g.setLineDash([])}
 function render(){const lay=$('mode').value==='l',p=P();if(!lay)p.r2=p.r1;
 $('rwr2').hidden=$('rwh').hidden=!lay;$('rHA').hidden=$('rHE').hidden=$('rL').hidden=!lay;
 $('lr1').textContent=lay?'Resistivitas lapisan 1, ρ₁':'Resistivitas medium, ρ';
