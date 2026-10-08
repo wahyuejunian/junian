@@ -94,7 +94,7 @@
   },
 
   {
-    "id": "aliran-arus",
+    "id": "aliran-arus-konduktif-resistif",
     "judul": {
       "id": "Aliran arus dan potensial terhadap medium konduktif dan resistif",
       "en": "Current and potential flow in conductive and resistive media"
