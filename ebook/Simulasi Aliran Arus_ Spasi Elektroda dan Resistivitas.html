@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Simulasi Aliran Arus: Spasi Elektroda dan Resistivitas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Spectral:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#f3f5f6;--panel:#fff;--ink:#14202b;--muted:#5b6b78;--line:#d5dde2;--accent:#0b6e7a;--c-cur:#d90429;--c-eq:#1d4ed8;--c-hc:#7e22ce;--c-he:#0f9d58;--lay1:#2563eb;--lay2:#d97706;--fb:"Instrument Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;--fh:"Spectral",Georgia,"Times New Roman",serif;color-scheme:light}
+@media(prefers-color-scheme:dark){:root{--paper:#10171d;--panel:#172029;--ink:#e7eef2;--muted:#9fb0bd;--line:#2a3745;--accent:#5cc3d1;--c-cur:#ff5d73;--c-eq:#6cb2ff;--c-hc:#d6a8ff;--c-he:#5ee6a0;--lay1:#4f8cff;--lay2:#f0a23c;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.55 var(--fb)}
+.wrap{max-width:1200px;margin:0 auto;padding:12px 14px}
+.top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+h1{font:600 clamp(20px,3vw,26px)/1.15 var(--fh);margin:0}
+.tools{display:flex;flex-wrap:wrap;gap:8px}
+button{font:inherit;font-size:14px;color:var(--ink);background:transparent;border:1px solid var(--line);border-radius:4px;padding:6px 12px;cursor:pointer}
+button:hover{border-color:var(--accent);color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.layout{display:grid;grid-template-columns:310px minmax(0,1fr);gap:12px;align-items:stretch}
+.layout.hide{grid-template-columns:minmax(0,1fr)}.layout.hide .controls{display:none}
+@media(max-width:880px){.layout{grid-template-columns:1fr}}
+.controls{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:4px 14px 14px}
+fieldset{border:0;margin:0;padding:10px 0 2px;min-inline-size:0}
+legend{font:600 15px var(--fh);float:left;width:100%;margin-bottom:6px;padding:0}legend+*{clear:both}
+.row{margin-bottom:8px}.rt{display:flex;justify-content:space-between;font-size:14px}
+output{font-variant-numeric:tabular-nums;color:var(--accent);font-weight:600}
+input[type=range]{width:100%;margin:4px 0 0;accent-color:var(--accent)}
+select{display:block;width:100%;margin-top:4px;font:inherit;font-size:14px;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:6px 8px}
+.ck{display:flex;align-items:center;gap:8px;font-size:14px;padding:4px 0;cursor:pointer}
+.ck[hidden]{display:none}
+.ck input{width:17px;height:17px;margin:0;accent-color:var(--accent);flex:none}
+.sw{flex:none;width:30px;height:0;border-top:3px solid var(--ink)}
+.sw.cur{border-color:var(--c-cur)}.sw.eq{border-color:var(--c-eq);border-top-style:dashed}
+.sw.hc{border-color:var(--c-hc);border-top-style:dashed}.sw.he{border-color:var(--c-he);border-top-style:dotted;border-top-width:4px}
+.sw.lay{height:12px;border:0;background:linear-gradient(var(--lay1) 50%,var(--lay2) 50%);opacity:.55;border-radius:2px}
+.cb{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:8px 10px 6px;display:flex;flex-direction:column;min-width:0}
+.cb h2{font:600 15px var(--fh);margin:0 0 4px}
+.cwrap{position:relative;height:420px}canvas{position:absolute;left:0;top:0}
+details{margin-top:12px;border-top:1px solid var(--line);padding-top:8px;font-size:14px}summary{cursor:pointer;font:600 16px var(--fh)}details p{color:var(--muted);margin:6px 0}
+.eq{font-family:"Cambria Math","STIX Two Math",Georgia,serif;background:var(--paper);border:1px solid var(--line);border-radius:4px;padding:8px 10px;margin:8px 0;overflow-x:auto;white-space:nowrap}
+@media(min-width:900px) and (min-height:620px){html,body{height:100%;overflow:hidden}.wrap{height:100vh;max-width:none;display:flex;flex-direction:column}.layout{flex:1;min-height:0}.controls{height:100%;overflow-y:auto}.cb{height:100%;min-height:0}.cwrap{flex:1;min-height:0;height:auto}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="top">
+<h1>Simulasi Aliran Arus · Spasi Elektroda dan Resistivitas</h1>
+<div class="tools"><button type="button" id="reset">Reset</button><button type="button" id="toggle" aria-expanded="true">Sembunyikan parameter</button></div>
+</header>
+<div class="layout" id="layout">
+<aside class="controls">
+<form onsubmit="return false">
+<fieldset id="fb"><legend>Parameter</legend><div class="row"><label for="mode">Jenis medium</label><select id="mode"><option value="l">Berlapis (dua lapis)</option><option value="h">Homogen</option></select></div></fieldset>
+<fieldset id="fc"><legend>Tampilkan garis</legend>
+<label class="ck"><input type="checkbox" id="cA" checked><span class="sw cur"></span>Garis arus</label>
+<label class="ck"><input type="checkbox" id="cE" checked><span class="sw eq"></span>Ekuipotensial</label>
+<label class="ck" id="rHA"><input type="checkbox" id="cHA" checked><span class="sw hc"></span>Arus homogen (pembanding)</label>
+<label class="ck" id="rHE"><input type="checkbox" id="cHE" checked><span class="sw he"></span>Ekuipotensial homogen (pembanding)</label>
+<label class="ck" id="rL"><input type="checkbox" id="cL" checked><span class="sw lay"></span>Batas &amp; warna lapisan</label>
+</fieldset></form>
+<details>
+<summary>Cara membaca</summary>
+<p>Dua elektroda arus di permukaan: A (+I) dan B (−I), posisi keduanya dapat digeser dengan slider (jarak minimum 5 m). Bumi dua lapis: lapisan 1 (ρ₁, tebal h) di atas setengah ruang ρ₂. Pilih medium homogen atau berlapis. Pada medium berlapis, garis pembanding adalah respons medium homogen (pola arus medium homogen tidak bergantung pada nilai ρ).</p>
+<p>Centang atau hapus centang pada daftar "Tampilkan garis" untuk menampilkan atau menyembunyikan tiap jenis garis. Spasi besar membuat arus menembus lebih dalam. Arus cenderung mengalir di lapisan yang lebih konduktif: jika lapisan bawah lebih konduktif garis arus tertarik ke bawah, jika lebih resistif garis arus tertahan di lapisan atas.</p>
+<div class="eq">k = (ρ₂ − ρ₁)/(ρ₂ + ρ₁) , V = (ρ₁I/2π)[1/R + Σ kⁿ(1/R₋ + 1/R₊)]</div>
+<p>Potensial dihitung dengan metode bayangan (R₋, R₊ adalah jarak ke sumber bayangan pada kedalaman ±2nh), lalu garis arus dilacak numerik mengikuti −∇V.</p>
+</details>
+</aside>
+<main>
+<section class="cb"><h2>Penampang vertikal aliran arus antara elektroda A dan B</h2><div class="cwrap"><canvas id="c1" role="img" aria-label="Garis arus dan ekuipotensial antara dua elektroda pada bumi dua lapis"></canvas></div></section>
+</main>
+</div>
+</div>
+<script>
+const $=i=>document.getElementById(i),TAU=Math.PI*2,on=i=>$(i).checked;
+const cs=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const D={a:0,b:50,r1:250,r2:50,h:25};
+const S=[['a','Posisi elektroda A (+I)',-10,110,1,'m'],['b','Posisi elektroda B (−I)',-10,110,1,'m'],['r1','Resistivitas lapisan 1, ρ₁',10,500,5,'Ωm'],['r2','Resistivitas lapisan 2, ρ₂',10,500,5,'Ωm'],['h','Tebal lapisan 1, h',5,60,1,'m']];
+S.forEach(s=>{const r=document.createElement('div');r.className='row';r.id='rw'+s[0];r.innerHTML='<div class="rt"><label id="l'+s[0]+'" for="s'+s[0]+'">'+s[1]+'</label><output id="v'+s[0]+'"></output></div><input type="range" id="s'+s[0]+'" min="'+s[2]+'" max="'+s[3]+'" step="'+s[4]+'" value="'+D[s[0]]+'">';$('fb').appendChild(r);r.querySelector('input').addEventListener('input',e=>{gap(e.target.id);render()})});
+const sp=document.createElement('div');sp.className='row';sp.innerHTML='<div class="rt"><span>Spasi AB</span><output id="vs"></output></div>';$('fb').insertBefore(sp,$('rwr1'));
+function gap(id){if(id!=='sa'&&id!=='sb')return;const o=+$(id==='sa'?'sb':'sa').value,m=+$(id).value;if(Math.abs(m-o)<5){const sg=m>=o?1:-1;let v=o+sg*5;if(v>110||v<-10)v=o-sg*5;$(id).value=v}}
+['cA','cE','cHA','cHE','cL'].forEach(i=>$(i).addEventListener('change',render));
+const P=()=>{const v={};S.forEach(s=>v[s[0]]=+$('s'+s[0]).value);v.s=Math.abs(v.b-v.a);return v};
+function model(p){const h=p.h,k=(p.r2-p.r1)/(p.r2+p.r1),N=k===0?0:Math.min(160,Math.ceil(Math.log(.004)/Math.log(Math.abs(k)))),a=[0,0,0],b=[0,0,0];
+function src(x,z,xs,o){const dx=x-xs,dd=dx*dx;let V=0,gx=0,gz=0,kn=1;
+if(z<=h){const R2=dd+z*z+1e-6,R=Math.sqrt(R2);V=1/R;gx=-dx/(R2*R);gz=-z/(R2*R);
+for(let n=1;n<=N;n++){kn*=k;const u=z-2*n*h,w=z+2*n*h,A2=dd+u*u,B2=dd+w*w,A=Math.sqrt(A2),B=Math.sqrt(B2);V+=kn*(1/A+1/B);gx-=kn*dx*(1/(A2*A)+1/(B2*B));gz-=kn*(u/(A2*A)+w/(B2*B))}}
+else{for(let n=0;n<=N;n++){const w=z+2*n*h,B2=dd+w*w,B=Math.sqrt(B2);V+=kn/B;gx-=kn*dx/(B2*B);gz-=kn*w/(B2*B);kn*=k}V*=1+k;gx*=1+k;gz*=1+k}
+o[0]=V;o[1]=gx;o[2]=gz}
+return{V:(x,z)=>{src(x,z,p.a,a);src(x,z,p.b,b);return a[0]-b[0]},D:(x,z)=>{src(x,z,p.a,a);src(x,z,p.b,b);const gx=-(a[1]-b[1]),gz=-(a[2]-b[2]),m=Math.hypot(gx,gz)+1e-15;return[gx/m,gz/m]}}}
+function fit(cv){const w=cv.parentNode.clientWidth,h=cv.parentNode.clientHeight,dp=window.devicePixelRatio||1;cv.width=Math.round(w*dp);cv.height=Math.round(h*dp);cv.style.width=w+'px';cv.style.height=h+'px';const g=cv.getContext('2d');g.setTransform(dp,0,0,dp,0,0);g.font='12px "Instrument Sans",system-ui,sans-serif';return{g,w,h}}
+function grid(M,st,nx,nz){const v=[];for(let i=0;i<=nx;i++){v[i]=[];for(let j=0;j<=nz;j++)v[i][j]=M.V(-20+i*st,j*st)}return v}
+function eqs(g,v,p,X,Y,st,nx,nz,col,dash,lw){g.strokeStyle=col;g.lineWidth=lw;g.setLineDash(dash);
+[0,.5,-.5,1,-1,1.7,-1.7,2.7,-2.7,4.5,-4.5].forEach(u=>{const L=u/p.s,sg=[],pt=new Map(),H=(i,j)=>2*(i*(nz+1)+j),Vi=(i,j)=>H(i,j)+1;
+for(let i=0;i<nx;i++)for(let j=0;j<nz;j++){const x=-20+i*st,z=j*st,A=v[i][j],B=v[i+1][j],C=v[i+1][j+1],E=v[i][j+1],q=[];
+const cr=(a,c,x1,y1,x2,y2,id)=>{if((a<L)!==(c<L)){const t=(L-a)/(c-a);if(!pt.has(id))pt.set(id,[X(x1+(x2-x1)*t),Y(y1+(y2-y1)*t)]);q.push(id)}};
+cr(A,B,x,z,x+st,z,H(i,j));cr(B,C,x+st,z,x+st,z+st,Vi(i+1,j));cr(E,C,x,z+st,x+st,z+st,H(i,j+1));cr(A,E,x,z,x,z+st,Vi(i,j));
+for(let m=0;m+1<q.length;m+=2)sg.push([q[m],q[m+1]])}
+const adj=new Map(),used=new Uint8Array(sg.length);
+sg.forEach((s,i)=>s.forEach(e=>{if(!adj.has(e))adj.set(e,[]);adj.get(e).push(i)}));
+g.beginPath();
+sg.forEach((s,i)=>{if(used[i])return;used[i]=1;const ln=[s[0],s[1]];
+for(let sd=0;sd<2;sd++){for(;;){const e=ln[ln.length-1],k2=(adj.get(e)||[]).find(j=>!used[j]);if(k2===undefined)break;used[k2]=1;const t=sg[k2];ln.push(t[0]===e?t[1]:t[0])}ln.reverse()}
+ln.forEach((e,k)=>{const c=pt.get(e);k?g.lineTo(c[0],c[1]):g.moveTo(c[0],c[1])})});
+g.stroke()});g.setLineDash([])}
+function curs(g,M,p,X,Y,col,lw,dash){g.strokeStyle=col;g.lineWidth=lw;g.setLineDash(dash);const NL=14;
+for(let n=0;n<NL;n++){const an=(n+.5)*Math.PI/NL;let x=p.a+.6*Math.cos(an),z=.6*Math.sin(an),ok=false;g.beginPath();g.moveTo(X(x),Y(z));
+for(let it=0;it<2500;it++){const ra=Math.hypot(x-p.a,z),rb=Math.hypot(x-p.b,z);if(rb<1){ok=true;break}const hs=Math.min(2.5,Math.max(.2,.06*Math.min(ra,rb))),d1=M.D(x,z),d2=M.D(x+d1[0]*hs/2,Math.max(0,z+d1[1]*hs/2));x+=d2[0]*hs;z=Math.max(0,z+d2[1]*hs);g.lineTo(X(x),Y(z));if(z>150||x<-150||x>250)break}
+if(ok)g.lineTo(X(p.b),Y(0));g.stroke()}g.setLineDash([])}
+function render(){const lay=$('mode').value==='l',p=P();if(!lay)p.r2=p.r1;
+$('rwr2').hidden=$('rwh').hidden=!lay;$('rHA').hidden=$('rHE').hidden=$('rL').hidden=!lay;
+$('lr1').textContent=lay?'Resistivitas lapisan 1, ρ₁':'Resistivitas medium, ρ';
+S.forEach(s=>$('v'+s[0]).textContent=p[s[0]]+' '+s[5]);$('vs').textContent=p.s+' m';
+const{g,w,h:H}=fit($('c1')),l=54,r=14,t=28,b=40,sc=Math.min((w-l-r)/140,(H-t-b)/100),x0=l+((w-l-r)-140*sc)/2,y0=t+((H-t-b)-100*sc)/2,X=x=>x0+(x+20)*sc,Y=z=>y0+z*sc,M=model(p),st=1.5,nx=Math.ceil(140/st),nz=Math.ceil(100/st),mu=cs('--muted'),ink=cs('--ink');
+g.save();g.beginPath();g.rect(X(-20),Y(0),140*sc,100*sc);g.clip();
+if(lay){
+if(on('cL')){g.globalAlpha=.16;g.fillStyle=cs('--lay1');g.fillRect(X(-20),Y(0),140*sc,p.h*sc);g.globalAlpha=.14;g.fillStyle=cs('--lay2');g.fillRect(X(-20),Y(p.h),140*sc,(100-p.h)*sc);
+g.globalAlpha=.55;g.strokeStyle=ink;g.lineWidth=1.2;g.beginPath();g.moveTo(X(-20),Y(p.h));g.lineTo(X(120),Y(p.h));g.stroke();g.globalAlpha=1}
+if(on('cHE')||on('cHA')){const Mh=model({...p,r2:p.r1});
+if(on('cHE'))eqs(g,grid(Mh,st,nx,nz),p,X,Y,st,nx,nz,cs('--c-he'),[2,3],2.2);
+if(on('cHA'))curs(g,Mh,p,X,Y,cs('--c-hc'),1.8,[9,4])}}
+if(on('cE'))eqs(g,grid(M,st,nx,nz),p,X,Y,st,nx,nz,cs('--c-eq'),[6,4],1.6);
+if(on('cA'))curs(g,M,p,X,Y,cs('--c-cur'),2,[]);
+g.fillStyle=ink;g.textAlign='right';
+if(lay){g.fillText('ρ₁ = '+p.r1+' Ωm',X(118),Y(Math.min(p.h/2+4,p.h-3)));g.fillText('ρ₂ = '+p.r2+' Ωm',X(118),Y((p.h+100)/2))}else g.fillText('ρ = '+p.r1+' Ωm',X(118),Y(94));
+g.restore();
+g.strokeStyle=cs('--line');g.lineWidth=1;g.strokeRect(X(-20),Y(0),140*sc,100*sc);
+g.fillStyle=mu;g.textAlign='center';
+for(let q=-20;q<=120;q+=20)g.fillText(q,X(q),Y(100)+16);
+g.textAlign='right';for(let q=0;q<=100;q+=20)g.fillText(q,X(-20)-6,Y(q)+4);
+g.textAlign='center';g.fillText('Jarak (m)',X(50),H-6);g.save();g.translate(12,Y(50));g.rotate(-Math.PI/2);g.fillText('Kedalaman (m)',0,0);g.restore();
+[[p.a,'A (+I)'],[p.b,'B (−I)']].forEach(e=>{g.fillStyle=ink;g.beginPath();g.arc(X(e[0]),Y(0),5,0,TAU);g.fill();g.strokeStyle=cs('--panel');g.lineWidth=1.5;g.stroke();g.textAlign='center';g.font='600 12px "Instrument Sans",system-ui,sans-serif';g.fillText(e[1],X(e[0]),Y(0)-10)})}
+$('reset').onclick=()=>{S.forEach(s=>$('s'+s[0]).value=D[s[0]]);$('mode').value='l';['cA','cE','cHA','cHE','cL'].forEach(i=>$(i).checked=true);render()};$('mode').addEventListener('change',render);
+$('toggle').onclick=function(){const h=$('layout').classList.toggle('hide');this.textContent=h?'Tampilkan parameter':'Sembunyikan parameter';this.setAttribute('aria-expanded',!h)};
+let rq=0;const rz=()=>{cancelAnimationFrame(rq);rq=requestAnimationFrame(render)};
+new ResizeObserver(rz).observe($('c1').parentNode);
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',rz);
+render();
+</script>
+</body>
+</html>
