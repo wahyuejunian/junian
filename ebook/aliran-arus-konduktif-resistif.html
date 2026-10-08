@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aliran Arus pada Benda Konduktif dan Resistif</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Spectral:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#f3f5f6;--panel:#fff;--ink:#14202b;--muted:#5b6b78;--line:#d5dde2;--grid:#e3e9ed;--accent:#0b6e7a;--warm:#c2410c;--viol:#6d4bb5;--fb:"Instrument Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;--fh:"Spectral",Georgia,"Times New Roman",serif;color-scheme:light}
+@media(prefers-color-scheme:dark){:root{--paper:#10171d;--panel:#172029;--ink:#e7eef2;--muted:#93a4b1;--line:#2a3745;--grid:#212d38;--accent:#5cc3d1;--warm:#f08a3c;--viol:#a58cf0;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.55 var(--fb)}
+.wrap{max-width:1200px;margin:0 auto;padding:12px 14px}
+.top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+h1{font:600 clamp(20px,3vw,26px)/1.15 var(--fh);margin:0}
+.tools{display:flex;flex-wrap:wrap;gap:8px}
+button{font:inherit;font-size:14px;color:var(--ink);background:transparent;border:1px solid var(--line);border-radius:4px;padding:6px 12px;cursor:pointer}
+button:hover{border-color:var(--accent);color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.layout{display:grid;grid-template-columns:310px minmax(0,1fr);gap:12px;align-items:stretch}
+.layout.hide{grid-template-columns:minmax(0,1fr)}.layout.hide .controls{display:none}
+@media(max-width:880px){.layout{grid-template-columns:1fr}}
+.controls{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:4px 14px 14px}
+fieldset{border:0;border-top:1px solid var(--line);margin:0;padding:10px 0 2px;min-inline-size:0}fieldset:first-child{border-top:0}
+legend{font:600 15px var(--fh);float:left;width:100%;margin-bottom:6px;padding:0}legend+*{clear:both}
+.row{margin-bottom:8px}.rt{display:flex;justify-content:space-between;font-size:14px}
+output{font-variant-numeric:tabular-nums;color:var(--accent);font-weight:600}
+input[type=range]{width:100%;margin:4px 0 0;accent-color:var(--accent)}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px}
+.check{display:flex;align-items:center;gap:8px;margin:0 0 8px;font-size:14px}.check input{accent-color:var(--accent)}
+.charts{display:grid;grid-template-columns:minmax(0,1fr);gap:10px}
+.cb{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:8px 10px 6px;display:flex;flex-direction:column;min-width:0}
+.cb h2{font:600 15px var(--fh);margin:0 0 4px}
+.ct{display:flex;justify-content:space-between;flex-wrap:wrap;gap:4px 10px;align-items:baseline}
+.lg{font-size:12px;color:var(--muted)}.lg i{display:inline-block;width:16px;border-top:2px solid var(--muted);vertical-align:middle;margin:0 4px 0 8px}
+.lg .d{border-top-style:dashed;border-color:var(--warm)}
+.cwrap{position:relative;height:280px}canvas{position:absolute;left:0;top:0}
+table{border-collapse:collapse;width:100%;font-size:13px;font-variant-numeric:tabular-nums}
+th,td{padding:4px 8px;text-align:right;border-bottom:1px solid var(--line)}th:first-child,td:first-child{text-align:left}th{color:var(--muted);font-weight:600}
+details{margin-top:12px;border-top:1px solid var(--line);padding-top:8px;font-size:14px}summary{cursor:pointer;font:600 16px var(--fh)}details p{color:var(--muted);margin:6px 0}
+.eq{font-family:"Cambria Math","STIX Two Math",Georgia,serif;background:var(--paper);border:1px solid var(--line);border-radius:4px;padding:8px 10px;margin:8px 0;overflow-x:auto;white-space:nowrap}
+@media(min-width:900px) and (min-height:620px){html,body{height:100%;overflow:hidden}.wrap{height:100vh;max-width:none;display:flex;flex-direction:column}.layout{flex:1;min-height:0}.controls{height:100%;overflow-y:auto}.charts{height:100%;min-height:0;grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:minmax(0,1fr)}.cb{min-height:0}.cwrap{flex:1;min-height:0;height:auto}.res{overflow:auto}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="top">
+<h1>Aliran Arus · Benda Konduktif dan Resistif</h1>
+<div class="tools"><button type="button" id="reset">Reset</button><button type="button" id="toggle" aria-expanded="true">Sembunyikan parameter</button></div>
+</header>
+<div class="layout" id="layout">
+<aside class="controls">
+<form onsubmit="return false">
+<fieldset><legend>Contoh</legend>
+<div class="btns"><button type="button" data-k="0.48">Kontras 3×</button><button type="button" data-k="1">10×</button><button type="button" data-k="2">100×</button></div>
+<div class="btns"><button type="button" data-d="75" data-a="40">Benda dekat</button><button type="button" data-d="105" data-a="25">Benda jauh</button></div></fieldset>
+<fieldset id="fb"><legend>Benda anomali</legend></fieldset>
+<fieldset id="fv"><legend>Tampilan</legend>
+<label class="check"><input type="checkbox" id="ceq" checked> Ekuipotensial</label>
+<label class="check"><input type="checkbox" id="ccur" checked> Garis arus</label></fieldset>
+</form>
+<details>
+<summary>Cara membaca</summary>
+<p>Satu elektroda arus berada di tengah medium homogen (σ₁). Benda anomali (σ₂) digambar sebagai silinder, sehingga model ini analog 2D. Panel kiri memakai σ₂ = rasio × σ₁, panel kanan kebalikannya.</p>
+<p>Pada benda konduktif garis arus tertarik masuk dan ekuipotensial di dalamnya renggang. Pada benda resistif garis arus menghindar dan ekuipotensial di dalamnya rapat.</p>
+<div class="eq">K = (σ₁ − σ₂)/(σ₁ + σ₂) , W<sub>luar</sub> = ln r₀ + K ln r₁ − K ln r₂ , W<sub>dalam</sub> = (1+K) ln r₀ − K ln d</div>
+<p>r₀ jarak ke elektroda, r₁ jarak ke titik bayangan, r₂ jarak ke pusat benda. Garis arus mengikuti gradien W dan dilacak numerik.</p>
+</details>
+</aside>
+<main class="charts">
+<section class="cb"><div class="ct"><h2 id="h1">Benda konduktif</h2><span class="lg"><i></i>ekuipotensial<i class="d"></i>garis arus</span></div><div class="cwrap"><canvas id="c1" role="img" aria-label="Garis arus dan ekuipotensial di sekitar benda konduktif"></canvas></div></section>
+<section class="cb"><h2 id="h2">Benda resistif</h2><div class="cwrap"><canvas id="c2" role="img" aria-label="Garis arus dan ekuipotensial di sekitar benda resistif"></canvas></div></section>
+</main>
+</div>
+</div>
+<script>
+const $=i=>document.getElementById(i),R=150,TAU=Math.PI*2;
+const cs=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const nf=(v,d=2)=>v.toLocaleString('id-ID',{minimumFractionDigits:d,maximumFractionDigits:d});
+const fr=r=>{const q=r<10?Math.round(r*10)/10:Math.round(r);return nf(q,q%1?1:0)};
+const sg=v=>(v>0.005?'+':v<-0.005?'−':'')+nf(Math.abs(v));
+const D={k:1,d:100,a:42,t:20,n:24,e:7};
+const S=[['k','Kontras σ₂/σ₁',.18,2,.01,'fb'],['d','Jarak pusat benda',60,105,1,'fb'],['a','Jari-jari benda',20,45,1,'fb'],['t','Sudut posisi benda',-180,180,1,'fb'],['n','Jumlah garis arus',8,48,4,'fv'],['e','Jumlah ekuipotensial',4,12,1,'fv']];
+S.forEach(s=>{const r=document.createElement('div');r.className='row';r.innerHTML='<div class="rt"><label for="s'+s[0]+'">'+s[1]+'</label><output id="v'+s[0]+'"></output></div><input type="range" id="s'+s[0]+'" min="'+s[2]+'" max="'+s[3]+'" step="'+s[4]+'" value="'+D[s[0]]+'">';$(s[5]).insertBefore(r,s[0]=='n'?$('fv').querySelector('.check'):null);r.querySelector('input').addEventListener('input',render)});
+function P(){const v={};S.forEach(s=>v[s[0]]=+$('s'+s[0]).value);v.r=Math.pow(10,v.k);if(v.d-v.a<12){v.a=v.d-12;$('sa').value=v.a}return v}
+function model(s2,p){const K=(1-s2)/(1+s2),th=-p.t*Math.PI/180,d=p.d,a=p.a,c={x:d*Math.cos(th),y:d*Math.sin(th)},f=1-a*a/(d*d),im={x:c.x*f,y:c.y*f};
+const inb=(x,y)=>Math.hypot(x-c.x,y-c.y)<a;
+const W=(x,y)=>{const r=Math.hypot(x,y)+1e-6;return inb(x,y)?(1+K)*Math.log(r)-K*Math.log(d):Math.log(r)+K*Math.log(Math.hypot(x-im.x,y-im.y)+1e-6)-K*Math.log(Math.hypot(x-c.x,y-c.y)+1e-6)};
+const G=(x,y)=>{const s0=x*x+y*y+1e-9;let g;if(inb(x,y))g=[(1+K)*x/s0,(1+K)*y/s0];else{const ax=x-im.x,ay=y-im.y,s1=ax*ax+ay*ay+1e-9,bx=x-c.x,by=y-c.y,s2=bx*bx+by*by+1e-9;g=[x/s0+K*ax/s1-K*bx/s2,y/s0+K*ay/s1-K*by/s2]}const m=Math.hypot(g[0],g[1])+1e-12;return[g[0]/m,g[1]/m]};
+return{W,G,c,a,K,th,d}}
+function fit(cv){const w=cv.parentNode.clientWidth,h=cv.parentNode.clientHeight,dp=window.devicePixelRatio||1;cv.width=Math.round(w*dp);cv.height=Math.round(h*dp);cv.style.width=w+'px';cv.style.height=h+'px';const g=cv.getContext('2d');g.setTransform(dp,0,0,dp,0,0);g.font='12px "Instrument Sans",system-ui,sans-serif';return{g,w,h}}
+function pat(kind,col){const c=document.createElement('canvas');c.width=c.height=8;const g=c.getContext('2d');g.strokeStyle=g.fillStyle=col;g.lineWidth=1.2;if(kind){g.beginPath();g.moveTo(0,8);g.lineTo(8,0);g.moveTo(-1,1);g.lineTo(1,-1);g.moveTo(7,9);g.lineTo(9,7);g.stroke()}else{g.beginPath();g.arc(4,4,1.1,0,TAU);g.fill()}return g.canvas}
+function panel(cv,M,p,kind){const{g,w,h}=fit(cv),sc=Math.min(w,h)/2/(R+6),cx=w/2,cy=h/2,X=x=>cx+x*sc,Y=y=>cy+y*sc,bc=cs(kind?'--accent':'--viol');
+g.save();g.beginPath();g.arc(cx,cy,R*sc,0,TAU);g.strokeStyle=cs('--line');g.lineWidth=1;g.stroke();g.clip();
+g.beginPath();g.arc(X(M.c.x),Y(M.c.y),M.a*sc,0,TAU);g.globalAlpha=.14;g.fillStyle=bc;g.fill();g.globalAlpha=.8;g.fillStyle=g.createPattern(pat(kind,bc),'repeat');g.fill();g.globalAlpha=1;
+const st=2,n=Math.ceil(2*R/st),v=[];for(let i=0;i<=n;i++){v[i]=[];for(let j=0;j<=n;j++)v[i][j]=M.W(-R+i*st,-R+j*st)}
+if($('ceq').checked){g.strokeStyle=cs('--muted');g.lineWidth=1;g.globalAlpha=.85;g.beginPath();
+for(let l=0;l<p.e;l++){const L=Math.log(14+l*128/(p.e-1));for(let i=0;i<n;i++)for(let j=0;j<n;j++){const x=-R+i*st,y=-R+j*st,A=v[i][j],B=v[i+1][j],C=v[i+1][j+1],E=v[i][j+1],q=[];
+const cr=(a,b,x1,y1,x2,y2)=>{if((a<L)!==(b<L)){const t=(L-a)/(b-a);q.push([X(x1+(x2-x1)*t),Y(y1+(y2-y1)*t)])}};
+cr(A,B,x,y,x+st,y);cr(B,C,x+st,y,x+st,y+st);cr(E,C,x,y+st,x+st,y+st);cr(A,E,x,y,x,y+st);
+for(let k=0;k+1<q.length;k+=2){g.moveTo(q[k][0],q[k][1]);g.lineTo(q[k+1][0],q[k+1][1])}}}g.stroke();g.globalAlpha=1}
+if($('ccur').checked){const wc=cs('--warm');g.strokeStyle=wc;g.lineWidth=1.3;
+for(let k=0;k<p.n;k++){const an=k*TAU/p.n+.13;let x=5*Math.cos(an),y=5*Math.sin(an),px=x,py=y;g.setLineDash([6,4]);g.beginPath();g.moveTo(X(x),Y(y));
+for(let s=0;s<700;s++){const a=M.G(x,y),b=M.G(x+a[0]*.75,y+a[1]*.75);px=x;py=y;x+=b[0]*1.5;y+=b[1]*1.5;if(s%3==2)g.lineTo(X(x),Y(y));if(Math.hypot(x,y)>=138)break}
+g.lineTo(X(x),Y(y));g.stroke();g.setLineDash([]);const aa=Math.atan2(y-py,x-px),ex=X(x),ey=Y(y);g.beginPath();g.moveTo(ex+7*Math.cos(aa+2.7),ey+7*Math.sin(aa+2.7));g.lineTo(ex,ey);g.lineTo(ex+7*Math.cos(aa-2.7),ey+7*Math.sin(aa-2.7));g.stroke()}}
+g.beginPath();g.arc(X(M.c.x),Y(M.c.y),M.a*sc,0,TAU);g.strokeStyle=bc;g.lineWidth=1.6;g.stroke();
+g.beginPath();g.arc(cx,cy,4,0,TAU);g.fillStyle=cs('--ink');g.fill();g.restore()}
+function render(){const p=P(),Mc=model(p.r,p),Mr=model(1/p.r,p),f=fr(p.r);
+S.forEach(s=>{const v=p[s[0]];$('v'+s[0]).textContent=s[0]=='k'?f+'×':s[0]=='t'?v+'°':v});
+$('h1').textContent='Benda konduktif (σ₂ = '+f+'σ₁)';$('h2').textContent='Benda resistif (σ₂ = σ₁/'+f+')';
+panel($('c1'),Mc,p,1);panel($('c2'),Mr,p,0);
+}
+document.querySelectorAll('button[data-k],button[data-d]').forEach(b=>b.onclick=()=>{['k','d','a'].forEach(k=>{if(b.dataset[k]!==undefined)$('s'+k).value=b.dataset[k]});render()});
+$('reset').onclick=()=>{S.forEach(s=>$('s'+s[0]).value=D[s[0]]);$('ceq').checked=$('ccur').checked=true;render()};
+$('toggle').onclick=function(){const h=$('layout').classList.toggle('hide');this.textContent=h?'Tampilkan parameter':'Sembunyikan parameter';this.setAttribute('aria-expanded',!h)};
+$('ceq').onchange=$('ccur').onchange=render;
+let rq=0;const rz=()=>{cancelAnimationFrame(rq);rq=requestAnimationFrame(render)};
+const ro=new ResizeObserver(rz);document.querySelectorAll('.cwrap').forEach(c=>ro.observe(c));
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',rz);
+render();
+</script>
+</body>
+</html>
