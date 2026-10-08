@@ -112,5 +112,25 @@
     "file": "ebook/aliran-arus-konduktif-resistif.html",
     "tipe": "html",
     "pdf": "#"
+  },
+{
+    "id": "current_spacing",
+    "judul": {
+      "id": "Simulasi aliran arus terhadap jarak elektroda dan medium",
+      "en": "Simulasi aliran arus terhadap jarak elektroda dan medium"
+    },
+    "deskripsi": {
+      "id": "Simulasi aliran arus terhadap jarak elektroda dan medium",
+      "en": "Simulasi aliran arus terhadap jarak elektroda dan medium"
+    },
+    "tag": [
+      "Current",
+      "Potential",
+      "conductive",
+      "resistive"
+    ],
+    "file": "ebook/current_spacing.html",
+    "tipe": "html",
+    "pdf": "#"
   }
 ]
