@@ -203,7 +203,7 @@ function makeGWO(cfg, obs, freq) {
 const $ = id => document.getElementById(id);
 const SUB = ['₁', '₂', '₃', '₄'];
 const state = {
-  n: 3, rho: [100, 1000, 10, 100], h: [500, 1000, 300], lo: -3, hi: 4, np: 56, noise: 5, nseed: 7,
+  n: 3, rho: [100, 1000, 10, 100], h: [500, 1000, 300], lo: -3, hi: 4, np: 30, noise: 0, nseed: 7,
   inv: { npop: 100, nl: 3, ni: 500, rmin: 1, rmax: 2500, tmin: 0, tmax: 3000, amode: 'quad', wmode: 'mean', misfit: 'rms', seed: 11 }
 };
 const PRESETS = { M1: { n: 3, rho: [100, 1000, 10, 100], h: [500, 1000, 300] }, M2: { n: 3, rho: [100, 10, 1000, 100], h: [500, 1000, 300] } };
