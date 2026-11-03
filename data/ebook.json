@@ -14,9 +14,9 @@
       "modul"
     ],
     "file": "ebook/modul-gravitasi.md",
+    "tipe": "md",
     "pdf": "#"
   },
-  
   {
     "id": "forward-gravity-2d",
     "judul": {
@@ -35,7 +35,6 @@
     "tipe": "html",
     "pdf": "#"
   },
-  
   {
     "id": "forward-magnetic-2d",
     "judul": {
@@ -54,7 +53,6 @@
     "tipe": "html",
     "pdf": "#"
   },
-
   {
     "id": "forward-ves1d",
     "judul": {
@@ -63,90 +61,87 @@
     },
     "deskripsi": {
       "id": "Simulasi respons apparent resistivity dari medium berlapis homogen.",
-      "en": "Simulasi respons apparent resistivity dari medium berlapis homogen."
+      "en": "Simulation of apparent resistivity response from a homogeneous layered medium."
     },
     "tag": [
-      "VES",
-      "Forward"
+      "ves",
+      "forward"
     ],
     "file": "ebook/forward-ves1d.html",
     "tipe": "html",
     "pdf": "#"
   },
-
-{
+  {
     "id": "inversion-ves1d-gwo",
     "judul": {
-      "id": "Inversion Modelling Vertical Electrical Sounding (VES) using Grey Wolf Optimizer (GWO)",
-      "en": "Inversion Modelling Vertical Electrical Sounding (VES)using Grey Wolf Optimizer (GWO)"
+      "id": "Pemodelan Inversi Vertical Electrical Sounding (VES) menggunakan Grey Wolf Optimizer (GWO)",
+      "en": "Inversion Modelling Vertical Electrical Sounding (VES) using Grey Wolf Optimizer (GWO)"
     },
     "deskripsi": {
       "id": "Pemodelan inversi resistivitas 1D dari data VES menggunakan algoritma Grey Wolf Optimizer (GWO).",
-      "en": "Pemodelan inversi resistivitas 1D dari data VES menggunakan algoritma Grey Wolf Optimizer (GWO)."
+      "en": "1D resistivity inversion modelling from VES data using Grey Wolf Optimizer (GWO) algorithm."
     },
     "tag": [
-      "VES",
-      "Inversion"
+      "ves",
+      "inversi"
     ],
     "file": "ebook/inversion-ves1d-gwo.html",
     "tipe": "html",
     "pdf": "#"
   },
-
-{
+  {
     "id": "aliran-arus-konduktif-resistif",
     "judul": {
-      "id": "Aliran arus dan potensial terhadap medium konduktif dan resistif",
-      "en": "Current and potential flow in conductive and resistive media"
+      "id": "Aliran Arus dan Potensial Terhadap Medium Konduktif dan Resistif",
+      "en": "Current and Potential Flow in Conductive and Resistive Media"
     },
     "deskripsi": {
-      "id": "Aliran arus dan potensial terhadap medium konduktif dan resistif",
-      "en": "Current and potential flow in conductive and resistive media"
+      "id": "Visualisasi aliran arus dan potensial terhadap medium konduktif dan resistif.",
+      "en": "Visualization of current and potential flow in conductive and resistive media."
     },
     "tag": [
-      "Current",
-      "Potential",
-      "conductive",
-      "resistive"
+      "arus",
+      "potensial",
+      "konduktif",
+      "resistif"
     ],
     "file": "ebook/aliran-arus-konduktif-resistif.html",
     "tipe": "html",
     "pdf": "#"
   },
-{
-    "id": "current_spacing",
+  {
+    "id": "current-spacing",
     "judul": {
-      "id": "Simulasi aliran arus terhadap jarak elektroda dan medium",
-      "en": "Simulasi aliran arus terhadap jarak elektroda dan medium"
+      "id": "Simulasi Aliran Arus Terhadap Jarak Elektroda dan Medium",
+      "en": "Simulation of Current Flow Relative to Electrode Spacing and Medium"
     },
     "deskripsi": {
-      "id": "Simulasi aliran arus terhadap jarak elektroda dan medium",
-      "en": "Simulasi aliran arus terhadap jarak elektroda dan medium"
+      "id": "Simulasi aliran arus terhadap jarak elektroda dan medium.",
+      "en": "Simulation of current flow relative to electrode spacing and medium."
     },
     "tag": [
-      "Current",
-      "Potential",
-      "conductive",
-      "resistive"
+      "arus",
+      "potensial",
+      "konduktif",
+      "resistif"
     ],
     "file": "ebook/current_spacing.html",
     "tipe": "html",
     "pdf": "#"
   },
-
   {
-    "id": "MT1D_GWO",
+    "id": "mt1d-gwo",
     "judul": {
-      "id": "Inversion Modelling Magnetotelluric 1D using Grey Wolf Optimizer (GWO)",
-      "en": "Inversion Modelling Magnetotelluric 1D using Grey Wolf Optimizer (GWO)"
+      "id": "Pemodelan Inversi Magnetotelluric 1D menggunakan Grey Wolf Optimizer (GWO)",
+      "en": "1D Magnetotelluric Inversion Modelling using Grey Wolf Optimizer (GWO)"
     },
     "deskripsi": {
       "id": "Pemodelan inversi Magnetotelluric 1D menggunakan algoritma Grey Wolf Optimizer (GWO).",
-      "en": "Pemodelan inversi Magnetotelluric 1D menggunakan algoritma Grey Wolf Optimizer (GWO)."
+      "en": "1D Magnetotelluric inversion modelling using Grey Wolf Optimizer (GWO) algorithm."
     },
     "tag": [
-      "MT",
-      "Inversion"
+      "mt",
+      "inversi"
     ],
     "file": "ebook/MT1D_GWO.html",
     "tipe": "html",
