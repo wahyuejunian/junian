@@ -4,8 +4,8 @@ const $=(s,r=document)=>r.querySelector(s), app=$('#app');
 const B=document.body.dataset.base||'', H=(p,q='')=>p=='home'?`${B}index.html`:`${B}pages/${p}.html${q}`;
 let lang=localStorage.lang||'id', D={}, charts=[], live=false;
 /* Teks antarmuka dwibahasa. Isi data bilingual: {"id":"..","en":".."} */
-const UI={id:{home:'Beranda',profil:'Profil',penelitian:'Penelitian',pengabdian:'Pengabdian',bimbingan:'Bimbingan',kuliah:'Perkuliahan',ebook:'Ebook',proyek:'Proyek',kontak:'Kontak',cv:'Unduh CV',hubungi:'Hubungi',pub:'Publikasi',mhs:'Mahasiswa bimbingan',prj:'Proyek',search:'Cari…',all:'Semua',baca:'Baca',unduh:'Unduh PDF',fail:'Data belum bisa dimuat. Menampilkan data lokal.',upd:'Terakhir diperbarui',src:'Sumber',sheet:'Google Sheets',local:'data lokal',meet:'Pertemuan',topic:'Topik',read:'Bacaan',task:'Tugas',send:'Kirim pesan',year:'Tahun',type:'Jenis',back:'Kembali',empty:'Tidak ada data yang cocok.'},
- en:{home:'Home',profil:'Profile',penelitian:'Research',pengabdian:'Community service',bimbingan:'Supervision',kuliah:'Teaching',ebook:'Ebooks',proyek:'Projects',kontak:'Contact',cv:'Download CV',hubungi:'Contact me',pub:'Publications',mhs:'Supervised students',prj:'Projects',search:'Search…',all:'All',baca:'Read',unduh:'Download PDF',fail:'Data could not be loaded. Showing local data.',upd:'Last updated',src:'Source',sheet:'Google Sheets',local:'local data',meet:'Session',topic:'Topic',read:'Reading',task:'Assignment',send:'Send message',year:'Year',type:'Type',back:'Back',empty:'No matching data.'}};
+const UI={id:{home:'Beranda',profil:'Profil',penelitian:'Penelitian',pengabdian:'Pengabdian',bimbingan:'Bimbingan',kuliah:'Perkuliahan',ebook:'Catatan',proyek:'Pengalaman',kontak:'Kontak',cv:'Unduh CV',hubungi:'Hubungi',pub:'Publikasi',mhs:'Mahasiswa bimbingan',prj:'Pengalaman',search:'Cari…',all:'Semua',baca:'Baca',unduh:'Unduh PDF',fail:'Data belum bisa dimuat. Menampilkan data lokal.',upd:'Terakhir diperbarui',src:'Sumber',sheet:'Google Sheets',local:'data lokal',meet:'Pertemuan',topic:'Topik',read:'Bacaan',task:'Tugas',send:'Kirim pesan',year:'Tahun',type:'Jenis',back:'Kembali',empty:'Tidak ada data yang cocok.'},
+ en:{home:'Home',profil:'Profile',penelitian:'Research',pengabdian:'Community service',bimbingan:'Supervision',kuliah:'Teaching',ebook:'Notes',proyek:'Experience',kontak:'Contact',cv:'Download CV',hubungi:'Contact me',pub:'Publications',mhs:'Supervised students',prj:'Experience',search:'Search…',all:'All',baca:'Read',unduh:'Download PDF',fail:'Data could not be loaded. Showing local data.',upd:'Last updated',src:'Source',sheet:'Google Sheets',local:'local data',meet:'Session',topic:'Topic',read:'Reading',task:'Assignment',send:'Send message',year:'Year',type:'Type',back:'Back',empty:'No matching data.'}};
 /* Gambar: URL penuh dipakai apa adanya; path relatif (mis. assets/img/foto.jpg) otomatis diberi awalan folder */
 const img=x=>/^(https?:|data:|\/\/)/i.test(x)?x:B+x;
 /* DOI: terima "10.xxxx/abc" atau URL penuh */
@@ -26,6 +26,7 @@ async function loadMeet(c){if(c.pertemuan)return;let rows=null;
  if(!rows)rows=(D.materi||[]).filter(p=>p.mk==c.id); /* tab materi: kolom mk, no, topik, slide */
  c.pertemuan=rows.filter(p=>p.no!==''&&p.no!=null).sort((a,b)=>a.no-b.no).map(p=>({...p,topik:bi(p,'topik')}))}
 const u=k=>UI[lang][k]||k, t=o=>o&&typeof o==='object'?(o[lang]||o.id):o;
+const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const cv=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 
 /* ---- Pemuat data: Google Sheets (CSV) -> fallback JSON lokal ---- */
@@ -36,7 +37,7 @@ async function load(n){const url=(D.site?.sheets||{})[n];
  return (await fetch(`${B}data/${n}.json`)).json()}
 async function init(){app.innerHTML='<div class="sk"></div>'.repeat(4);
  D.site=await (await fetch(B+'data/site.json')).json();
- for(const n of['publikasi','hibah','pengabdian','bimbingan','matakuliah','materi','ebook','proyek'])D[n]=await load(n).catch(()=>[]);
+ for(const n of['publikasi','hibah','pengabdian','bimbingan','matakuliah','materi','ebook','pengalaman'])D[n]=await load(n).catch(()=>[]);
  build();chrome();route()}
 
 /* ---- Grafik (warna mengikuti tema) ---- */
@@ -55,13 +56,12 @@ const nav=['profil','penelitian','pengabdian','bimbingan','kuliah','ebook','proy
 const links=o=>Object.entries(o).map(([k,v])=>`<a class="chip" href="${v}" target="_blank" rel="noopener">${k}</a>`).join('');
 const stamp=()=>`<p class="muted">${u('upd')}: ${D.site.updated} · ${u('src')}: ${live?u('sheet'):u('local')}</p>`;
 const V={
- home(){const s=D.site,st=[[D.publikasi.length,'pub'],[D.bimbingan.length,'mhs'],[D.proyek.length,'prj']];
-  return `<section class="hero"><div><span class="role">${t(s.jabatan)} · ${s.afiliasi}</span><h1>${s.nama}</h1><p>${t(s.ringkas)}</p>
-  <a class="btn" href="${H('kontak')}">${u('hubungi')}</a></div>
-  <div class="photo" role="img" aria-label="Foto ${s.nama}" style="background-image:url(${img(s.foto)})"></div>
-  <svg class="seismo" viewBox="0 0 1000 70" preserveAspectRatio="none" aria-hidden="true"><path d="M0 35H180l10-10 12 22 14-36 16 52 14-46 12 30 10-12H520l8-8 10 16 12-28 14 40 10-22 8 8H1000"/></svg></section>
-  <div class="stats">${st.map(([n,k])=>`<div class="stat"><b data-n="${n}">0</b>${u(k)}</div>`).join('')}</div>
-  <p>${(s.keahlian||[]).map(k=>`<span class="chip">${t(k)}</span>`).join('')}</p>`},
+home(){const s=D.site;
+ return `<section class="hero"><div><span class="role">${t(s.jabatan)} · ${s.afiliasi}</span><h1>${s.nama}</h1><p>${t(s.ringkas)}</p>
+ <a class="btn" href="${H('kontak')}">${u('hubungi')}</a></div>
+ <div class="photo" role="img" aria-label="Foto ${s.nama}" style="background-image:url(${img(s.foto)})"></div>
+ <svg class="seismo" viewBox="0 0 1000 70" preserveAspectRatio="none" aria-hidden="true"><path d="M0 35H180l10-10 12 22 14-36 16 52 14-46 12 30 10-12H520l8-8 10 16 12-28 14 40 10-22 8 8H1000"/></svg></section>
+ <div class="focus-strip">${(s.keahlian||[]).map(k=>`<span class="chip">${t(k)}</span>`).join('')}</div>`},
  profil(){const s=D.site;return `<h1>${u('profil')}</h1><p>${t(s.bio)}</p><h2>${lang=='id'?'Pendidikan':'Education'}</h2>${s.pendidikan.map(e=>`<div class="item"><b>${e.jenjang}</b> — ${e.kampus} <span class="muted">${e.tahun}</span></div>`).join('')}<h2>Link</h2>${links(s.links)}`},
  penelitian(){return `<h1>${u('penelitian')}</h1>${stamp()}<div class="charts">${box('c1')}${box('c2')}${box('c3')}${box('c4')}</div>
   <h2>${lang=='id'?'Kata kunci':'Keywords'}</h2><div class="cloud" id="cloud"></div><p id="sum" class="muted"></p>
@@ -83,7 +83,7 @@ const V={
   /* ebook berformat HTML interaktif ("tipe":"html") ditampilkan lewat iframe */
   if(b.tipe=='html')return `<p><a href="${H('ebook')}">← ${u('ebook')}</a> · <a href="${B+b.file}" target="_blank" rel="noopener">${lang=='id'?'Buka layar penuh':'Open full screen'} ↗</a></p><iframe id="ebf" class="embed" src="${B+b.file}" title="${t(b.judul)}"></iframe>`;
   return `<p><a href="${H('ebook')}">← ${u('ebook')}</a></p><div class="book"><nav class="toc" id="toc" aria-label="TOC"></nav><article class="md" id="md"></article></div>`},
- proyek(){return `<h1>${u('proyek')}</h1><div class="grid">${D.proyek.map(p=>`<article class="card">${p.gambar?`<img class="thumb" src="${img(p.gambar)}" alt="${p.judul}" loading="lazy">`:''}<h3>${p.judul}</h3><p>${t(p.deskripsi)}</p>${p.teknologi.map(x=>`<span class="chip">${x}</span>`).join('')}<p><a href="${p.link}">Demo / Repo</a></p></article>`).join('')}</div>`},
+ proyek(){return `<h1>${u('proyek')}</h1>${stamp()}<div class="tools"><input id="q" type="search" placeholder="${u('search')}" aria-label="${u('search')}"><select id="fy" aria-label="${u('year')}"></select><select id="fs" aria-label="${lang=='id'?'Status':'Status'}"></select></div><div class="experience-list" id="list"></div>`},
  kontak(){const s=D.site;return `<h1>${u('kontak')}</h1><p>${s.email}<br>${s.alamat}<br>${t(s.konsultasi)}</p>
   <form action="https://api.web3forms.com/submit" method="POST"><input type="hidden" name="access_key" value="${s.web3forms}"><p><input name="name" placeholder="Nama / Name" required aria-label="Name"> <input name="email" type="email" placeholder="Email" required aria-label="Email"></p><p><textarea name="message" rows="5" required aria-label="Message"></textarea></p><button class="btn">${u('send')}</button></form>`}};
 
@@ -126,6 +126,13 @@ const after={
   const go=()=>{const q=$('#q').value.toLowerCase(),r=M.filter(b=>(!$('#fy').value||b.tahun==$('#fy').value)&&(!$('#fs').value||b.status==$('#fs').value)&&(!$('#fj').value||b.jenjang==$('#fj').value)&&(b.nama+b.topik).toLowerCase().includes(q));
    $('#list').innerHTML=r.map(b=>{const t2=tandem(b);return `<div class="item"><b>${b.jenjang} · ${b.nama} · ${b.jenis} · ${b.tahun}</b> <span class="chip">${b.status}</span><br>${b.topik}${t2?`<br><span class="muted">${lang=='id'?'Pembimbing tandem':'Co-supervisors'}: ${t2}</span>`:''}</div>`}).join('')||`<p class="note">${u('empty')}</p>`};
   ['q','fy','fs','fj'].forEach(i=>$('#'+i).oninput=go);go()},
+ proyek(){const M=D.pengalaman||[],y=years(M).sort((a,b)=>b-a),st=[...new Set(M.map(x=>x.status).filter(Boolean))].sort();
+  const opt=(ph,a)=>`<option value="">${ph}</option>`+a.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join('');
+  $('#fy').innerHTML=opt(u('year'),y);$('#fs').innerHTML=opt(lang=='id'?'Semua status':'All statuses',st);
+  const go=()=>{const q=$('#q').value.trim().toLowerCase(),year=$('#fy').value,status=$('#fs').value;
+   const rows=M.filter(x=>(!year||String(x.tahun)==year)&&(!status||x.status==status)&&[x.tahun,x.status,x.instansi,x.keterangan].join(' ').toLowerCase().includes(q)).sort((a,b)=>b.tahun-a.tahun);
+   $('#list').innerHTML=rows.map(x=>`<article class="item experience-item"><div class="experience-year">${esc(x.tahun)}</div><div><span class="chip experience-status">${esc(x.status)}</span><h3>${esc(x.instansi)}</h3><p>${esc(x.keterangan)}</p></div></article>`).join('')||`<p class="note">${u('empty')}</p>`};
+  ['q','fy','fs'].forEach(i=>$('#'+i).oninput=go);go()},
  async ebook(id){const b=D.ebook.find(x=>x.id==id);if(!b)return;
   if(b.tipe=='html'){const f=$('#ebf'),fit=()=>{try{f.style.height=Math.max(640,f.contentDocument.documentElement.scrollHeight)+'px'}catch(e){}};
    f.onload=()=>{fit();try{new ResizeObserver(fit).observe(f.contentDocument.body)}catch(e){}};return}
