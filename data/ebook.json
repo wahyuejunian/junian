@@ -132,5 +132,24 @@
     "file": "ebook/current_spacing.html",
     "tipe": "html",
     "pdf": "#"
-  }
+  },
+
+  {
+    "id": "MT1D_GWO",
+    "judul": {
+      "id": "Inversion Modelling Magnetotelluric 1D using Grey Wolf Optimizer (GWO)",
+      "en": "Inversion Modelling Magnetotelluric 1D using Grey Wolf Optimizer (GWO)"
+    },
+    "deskripsi": {
+      "id": "Pemodelan inversi Magnetotelluric 1D menggunakan algoritma Grey Wolf Optimizer (GWO).",
+      "en": "Pemodelan inversi Magnetotelluric 1D menggunakan algoritma Grey Wolf Optimizer (GWO)."
+    },
+    "tag": [
+      "MT",
+      "Inversion"
+    ],
+    "file": "ebook/MT1D_GWO.html",
+    "tipe": "html",
+    "pdf": "#"
+  },
 ]
