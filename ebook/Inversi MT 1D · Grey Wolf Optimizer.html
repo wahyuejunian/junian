@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Inversi MT 1D dengan Grey Wolf Optimizer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Spectral:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root { --paper:#f3f5f6; --panel:#fff; --ink:#14202b; --muted:#5b6b78; --line:#d5dde2; --grid:#e3e9ed; --accent:#0b6e7a; --warm:#c2410c;
+    --font-body:"Instrument Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; --font-head:"Spectral",Georgia,"Times New Roman",serif; color-scheme:light; }
+  @media (prefers-color-scheme: dark) { :root { --paper:#10171d; --panel:#172029; --ink:#e7eef2; --muted:#93a4b1; --line:#2a3745; --grid:#212d38; --accent:#5cc3d1; --warm:#f08a3c; color-scheme:dark; } }
+  * { box-sizing:border-box; }
+  html { -webkit-text-size-adjust:100%; }
+  body { margin:0; background:var(--paper); color:var(--ink); font-family:var(--font-body); font-size:15px; line-height:1.55; }
+  .wrap { padding:calc(12px + env(safe-area-inset-top,0px)) 14px calc(20px + env(safe-area-inset-bottom,0px)); }
+  .bar { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; }
+  h1 { font-family:var(--font-head); font-weight:600; font-size:clamp(20px,3vw,26px); line-height:1.15; margin:0; }
+  .tools { display:flex; flex-wrap:wrap; gap:8px; }
+  .layout { display:grid; grid-template-columns:310px minmax(0,1fr); gap:12px; align-items:stretch; }
+  .layout.hide-ctrl { grid-template-columns:minmax(0,1fr); }
+  .layout.hide-ctrl .controls { display:none; }
+  @media (max-width:880px) { .layout { grid-template-columns:1fr; } }
+  .controls { background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:4px 14px 14px; }
+  fieldset { border:0; border-top:1px solid var(--line); margin:0; padding:10px 0 2px; min-inline-size:0; }
+  fieldset:first-of-type { border-top:0; }
+  legend { font-family:var(--font-head); font-weight:600; font-size:15px; padding:0; float:left; width:100%; margin-bottom:6px; }
+  legend + * { clear:both; }
+  .row { margin-bottom:8px; }
+  .row .tp { display:flex; justify-content:space-between; align-items:baseline; gap:8px; }
+  .row label, .sel label { font-size:14px; }
+  .row output { font-variant-numeric:tabular-nums; color:var(--accent); font-weight:600; font-size:14px; }
+  input[type=range] { width:100%; margin:4px 0 0; accent-color:var(--accent); }
+  .sel { margin-bottom:12px; }
+  select { display:block; width:100%; margin-top:4px; font:inherit; font-size:14px; color:var(--ink); background:var(--panel); border:1px solid var(--line); border-radius:4px; padding:6px 8px; }
+  .check { display:flex; align-items:center; gap:8px; margin:0 0 4px; font-size:13px; }
+  .check input { accent-color:var(--accent); width:16px; height:16px; margin:0; }
+  .btns { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:8px; }
+  button { font:inherit; font-size:14px; color:var(--ink); background:transparent; border:1px solid var(--line); border-radius:4px; padding:6px 12px; cursor:pointer; }
+  button:hover:not(:disabled) { border-color:var(--accent); color:var(--accent); }
+  button:disabled { opacity:.45; cursor:default; }
+  button.primary { background:var(--accent); border-color:var(--accent); color:var(--paper); font-weight:600; }
+  button.primary:hover:not(:disabled) { color:var(--paper); filter:brightness(1.08); }
+  :focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+  .charts { display:grid; grid-template-columns:minmax(0,1fr); gap:12px; }
+  .chart-block { background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:10px; display:flex; flex-direction:column; min-width:0; }
+  .chart-block h2 { font-family:var(--font-head); font-size:15px; font-weight:600; margin:0 0 4px; }
+  .ct { display:flex; justify-content:space-between; align-items:baseline; gap:8px; }
+  .cwrap { position:relative; height:300px; }
+  canvas { position:absolute; left:0; top:0; display:block; }
+  .stats { display:flex; flex-wrap:wrap; gap:2px 16px; margin:0 0 8px; padding:0; list-style:none; }
+  .stats li { font-size:13px; color:var(--muted); }
+  .stats b { color:var(--ink); font-variant-numeric:tabular-nums; font-weight:600; }
+  .tbl { overflow-x:auto; }
+  table { border-collapse:collapse; width:100%; font-size:13px; font-variant-numeric:tabular-nums; background:var(--panel); border:1px solid var(--line); }
+  th, td { padding:4px 8px; text-align:right; border-bottom:1px solid var(--line); }
+  th:first-child, td:first-child { text-align:left; }
+  th { font-weight:600; color:var(--muted); }
+  .eq { font-family:"Cambria Math","STIX Two Math",Georgia,serif; background:var(--paper); border:1px solid var(--line); border-radius:4px; padding:8px 12px; margin:8px 0; overflow-x:auto; white-space:nowrap; }
+  details.notes { margin-top:14px; border-top:1px solid var(--line); padding-top:10px; font-size:14px; }
+  details.notes summary { cursor:pointer; font-family:var(--font-head); font-weight:600; font-size:17px; }
+  details.notes p { margin:8px 0; color:var(--muted); }
+  small { color:var(--muted); }
+  @media (min-width:900px) and (min-height:620px) {
+    html, body { height:100%; overflow:hidden; }
+    .wrap { height:100vh; padding:calc(10px + env(safe-area-inset-top,0px)) 14px calc(10px + env(safe-area-inset-bottom,0px)); display:flex; flex-direction:column; }
+    .layout { flex:1; min-height:0; }
+    .controls { height:100%; overflow-y:auto; }
+    .charts { height:100%; min-height:0; grid-template-columns:minmax(0,1fr) minmax(0,1fr); grid-template-rows:minmax(0,1fr) minmax(0,1fr); gap:10px; }
+    .chart-block { min-height:0; padding:8px 10px 6px; }
+    .cwrap { flex:1; min-height:0; height:auto; }
+    .res { overflow:auto; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="bar">
+    <h1>Inversi MT 1D · Grey Wolf Optimizer</h1>
+    <div class="tools">
+      <button type="button" class="primary" id="run">▶ Jalankan inversi</button>
+      <button type="button" id="stop" disabled>Berhenti</button>
+      <button type="button" id="reset">Reset</button>
+      <button type="button" id="toggle" aria-expanded="true">Sembunyikan parameter</button>
+    </div>
+  </header>
+
+  <div class="layout" id="layout">
+    <aside class="controls" id="controls">
+      <form onsubmit="return false">
+        <fieldset>
+          <legend>Contoh model sebenarnya</legend>
+          <div class="btns">
+            <button type="button" data-p="M1">Model 1 (100/1000/10)</button><button type="button" data-p="M2">Model 2 (100/10/1000)</button>
+          </div>
+        </fieldset>
+        <fieldset id="fs-true"><legend>Model sebenarnya (data sintetik)</legend></fieldset>
+        <fieldset id="fs-ab"><legend>Data observasi</legend></fieldset>
+        <fieldset id="fs-gwo">
+          <legend>Parameter GWO</legend>
+          <div class="sel"><label for="amode">Penurunan parameter a</label>
+            <select id="amode"><option value="quad">Kuadratik: a = 2 − 2·iter²/niter² (mGWO)</option><option value="lin">Linear: a = 2 − 2·iter/niter</option></select></div>
+          <div class="sel"><label for="wmode">Bobot posisi baru</label>
+            <select id="wmode"><option value="mean">Rata-rata (X₁+X₂+X₃)/3</option><option value="w321">Berbobot (3X₁+2X₂+X₃)/6 (mGWO)</option></select></div>
+          <div class="sel"><label for="mis">Fungsi misfit</label>
+            <select id="mis"><option value="rms">RMS galat relatif (%)</option><option value="mape">Rata-rata galat relatif (%)</option></select></div>
+        </fieldset>
+      </form>
+      <details class="notes">
+        <summary>Cara membaca</summary>
+        <p>Data sintetik ρₐ dan fase dibuat dari model berlapis lewat fungsi MT1D, lalu resistivitas dan ketebalan lapisan dicari kembali dengan GWO. Semuanya dihitung di browser.</p>
+        <p>Titik adalah data observasi (noise Gaussian seperti kode Python: ρₐ dari |Z| berderau, fase dari Re dan Im berderau). Garis jingga adalah respons serigala α. Misfit menggabungkan galat relatif ρₐ dan fase. Model sebenarnya tangga solid, hasil inversi putus-putus.</p>
+        <div class="eq">Zₙ = √(iωμρₙ) , Zⱼ = wⱼ(1 − rⱼeⱼ)/(1 + rⱼeⱼ) , ρₐ = |Z|²/(ωμ) , φ = atan2(Im Z, Re Z)</div>
+        <small>rⱼ = (wⱼ − Z<sub>bawah</sub>)/(wⱼ + Z<sub>bawah</sub>), wⱼ = dⱼρⱼ, dⱼ = √(iωμ/ρⱼ), eⱼ = exp(−2hⱼdⱼ). Inversi MT juga tidak unik, terutama untuk lapisan tipis atau kontras kecil.</small>
+      </details>
+    </aside>
+
+    <main class="charts">
+      <section class="chart-block"><h2>Kurva resistivitas semu dan fase</h2><div class="cwrap"><canvas id="c1" role="img" aria-label="Data observasi dan kurva hasil inversi"></canvas></div></section>
+      <section class="chart-block"><h2>Model resistivitas terhadap kedalaman</h2><div class="cwrap"><canvas id="c2" role="img" aria-label="Model sebenarnya dan model hasil inversi"></canvas></div></section>
+      <section class="chart-block"><div class="ct"><h2>Kurva konvergensi</h2><label class="check"><input type="checkbox" id="logc" checked> skala log</label></div><div class="cwrap"><canvas id="c3" role="img" aria-label="Misfit alpha, beta, delta dan omega terhadap iterasi"></canvas></div></section>
+      <section class="chart-block res"><h2>Hasil inversi</h2><ul class="stats" id="stats"></ul><div class="tbl" id="res"></div></section>
+    </main>
+  </div>
+</div>
+
+<script>
+// ==ENGINE-START
+const MU = 4 * Math.PI * 1E-7;
+
+// Forward MT1D (setara MT1D Python): rho (N), thick (N-1), freq (Hz) -> rhoa, fase (derajat)
+function mt1d(rho, thick, freq, ra, ph) {
+  const L = rho.length;
+  for (let k = 0; k < freq.length; k++) {
+    const w = 2 * Math.PI * freq[k];
+    let a = Math.sqrt(w * MU * rho[L - 1] / 2), zr = a, zi = a;          // Zn = sqrt(i w mu rho)
+    for (let j = L - 2; j >= 0; j--) {
+      a = Math.sqrt(w * MU / (2 * rho[j]));                               // dj = a(1+i)
+      const wr = rho[j] * a, ang = 2 * thick[j] * a, e = Math.exp(-ang), er = e * Math.cos(ang), ei = -e * Math.sin(ang);
+      const nr = wr - zr, ni = wr - zi, dr = wr + zr, di = wr + zi, d1 = dr * dr + di * di;
+      const rr = (nr * dr + ni * di) / d1, ri = (ni * dr - nr * di) / d1;  // rj
+      const qr = rr * er - ri * ei, qi = rr * ei + ri * er;                // rj*ej
+      const ar = 1 - qr, ai = -qi, br = 1 + qr, bi = qi, d2 = br * br + bi * bi;
+      const fr = (ar * br + ai * bi) / d2, fi = (ai * br - ar * bi) / d2;
+      zr = wr * (fr - fi); zi = wr * (fr + fi);                            // Zj = wj*(1-re)/(1+re)
+    }
+    ra[k] = (zr * zr + zi * zi) / (w * MU); ph[k] = Math.atan2(zi, zr) * 180 / Math.PI;
+  }
+}
+
+// Misfit (%) gabungan ρa dan fase: ganti isinya jika ingin memakai fungsi misfit milik Anda
+function misfit(o, rc, pc, kind) {
+  const n = o.r.length; let s = 0;
+  for (let i = 0; i < n; i++) {
+    const e1 = (o.r[i] - rc[i]) / o.r[i], e2 = (o.p[i] - pc[i]) / Math.max(Math.abs(o.p[i]), 1);
+    s += kind === 'mape' ? Math.abs(e1) + Math.abs(e2) : e1 * e1 + e2 * e2;
+  }
+  return (kind === 'mape' ? s / (2 * n) : Math.sqrt(s / (2 * n))) * 100;
+}
+
+function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+
+// Grey Wolf Optimizer, mengikuti urutan GWO.m: evaluasi + update α/β/δ, lalu gerak semua serigala
+function makeGWO(cfg, obs, freq) {
+  const np = cfg.npop, nl = cfg.nl, nt = nl - 1, ni = cfg.ni, rnd = mulberry32(cfg.seed);
+  const rho = new Float64Array(np * nl), th = new Float64Array(np * nt), b1 = new Float64Array(freq.length), b2 = new Float64Array(freq.length);
+  for (let p = 0; p < np; p++) {
+    for (let k = 0; k < nl; k++) rho[p * nl + k] = cfg.rmin + rnd() * (cfg.rmax - cfg.rmin);
+    for (let k = 0; k < nt; k++) th[p * nt + k] = cfg.tmin + rnd() * (cfg.tmax - cfg.tmin);
+  }
+  const lead = [{ s: Infinity }, { s: Infinity }, { s: Infinity }], curves = { a: [], b: [], d: [], o: [] };
+  const wt = cfg.wmode === 'w321' ? [3 / 6, 2 / 6, 1 / 6] : [1 / 3, 1 / 3, 1 / 3];
+  let iter = 0, evals = 0;
+  const fit = p => { evals++; mt1d(rho.subarray(p * nl, (p + 1) * nl), th.subarray(p * nt, (p + 1) * nt), freq, b1, b2); return misfit(obs, b1, b2, cfg.misfit); };
+  const keep = (q, f, p) => { lead[q].s = f; lead[q].r = Float64Array.from(rho.subarray(p * nl, (p + 1) * nl)); lead[q].t = Float64Array.from(th.subarray(p * nt, (p + 1) * nt)); };
+  function move(x, off, n, lo, hi, key, a) {
+    for (let k = 0; k < n; k++) {
+      const xi = x[off + k]; let s = 0;
+      for (let q = 0; q < 3; q++) {
+        const ld = (lead[q][key] || lead[0][key])[k], A = 2 * a * rnd() - a, C = 2 * rnd();
+        s += wt[q] * (ld - A * Math.abs(C * ld - xi));
+      }
+      x[off + k] = Math.min(hi, Math.max(lo, s));
+    }
+  }
+  function step() {
+    iter++;
+    for (let p = 0; p < np; p++) {
+      const f = fit(p);
+      if (f < lead[0].s) keep(0, f, p);
+      if (f > lead[0].s && f < lead[1].s) keep(1, f, p);
+      if (f > lead[0].s && f > lead[1].s && f < lead[2].s) keep(2, f, p);
+    }
+    const a = cfg.amode === 'lin' ? 2 - iter * 2 / ni : 2 - iter * iter * 2 / (ni * ni);
+    for (let p = 0; p < np; p++) { move(rho, p * nl, nl, cfg.rmin, cfg.rmax, 'r', a); move(th, p * nt, nt, cfg.tmin, cfg.tmax, 't', a); }
+    curves.a.push(lead[0].s); curves.b.push(lead[1].s); curves.d.push(lead[2].s); curves.o.push(fit(np - 1));
+  }
+  return { step, lead, curves, cfg, get iter() { return iter; }, get evals() { return evals; } };
+}
+// ==ENGINE-END
+
+const $ = id => document.getElementById(id);
+const SUB = ['₁', '₂', '₃', '₄'];
+const state = {
+  n: 3, rho: [100, 1000, 10, 100], h: [500, 1000, 300], lo: -3, hi: 4, np: 56, noise: 5, nseed: 7,
+  inv: { npop: 100, nl: 3, ni: 500, rmin: 1, rmax: 2500, tmin: 0, tmax: 3000, amode: 'quad', wmode: 'mean', misfit: 'rms', seed: 11 }
+};
+const PRESETS = { M1: { n: 3, rho: [100, 1000, 10, 100], h: [500, 1000, 300] }, M2: { n: 3, rho: [100, 10, 1000, 100], h: [500, 1000, 300] } };
+const rows = [];
+const fmtRho = x => x >= 100 ? x.toFixed(0) : x.toFixed(1);
+const fmtH = x => x >= 100 ? x.toFixed(0) : x.toFixed(1);
+const fmtF = v => String(+Math.pow(10, v).toPrecision(2)) + ' Hz';
+let gwo = null, running = false, raf = 0, tStart = 0, elapsed = 0, cur = null;
+
+function addSlider(box, id, s) {
+  const row = document.createElement('div'); row.className = 'row';
+  const top = document.createElement('div'); top.className = 'tp';
+  const lab = document.createElement('label'); lab.htmlFor = id; lab.textContent = s.label;
+  const out = document.createElement('output'); out.htmlFor = id; top.append(lab, out);
+  const inp = document.createElement('input'); inp.type = 'range'; inp.id = id; inp.min = s.min; inp.max = s.max; inp.step = s.step;
+  inp.addEventListener('input', () => { s.set(parseFloat(inp.value)); out.textContent = s.fmt(s.get()); applyVis(); invalidate(); });
+  row.append(top, inp); box.append(row); rows.push({ row, inp, out, s });
+}
+function syncInputs() { rows.forEach(({ inp, out, s }) => { inp.value = s.get(); out.textContent = s.fmt(s.get()); }); applyVis(); }
+function applyVis() { rows.forEach(({ row, s }) => { row.hidden = !(s.vis ? s.vis() : true); }); }
+
+const I = state.inv, ft = $('fs-true');
+addSlider(ft, 's-n', { label: 'Jumlah lapisan', min: 2, max: 4, step: 1, get: () => state.n, set: v => state.n = v, fmt: v => String(v) });
+for (let i = 0; i < 4; i++) {
+  addSlider(ft, 's-r' + i, { label: 'Resistivitas ρ' + SUB[i] + ' (Ω·m)', min: 0, max: 4, step: 0.02, get: () => Math.log10(state.rho[i]), set: v => state.rho[i] = Math.pow(10, v), fmt: v => fmtRho(Math.pow(10, v)), vis: () => i < state.n });
+  if (i < 3) addSlider(ft, 's-h' + i, { label: 'Tebal h' + SUB[i] + ' (m)', min: 1, max: 4, step: 0.02, get: () => Math.log10(state.h[i]), set: v => state.h[i] = Math.pow(10, v), fmt: v => fmtH(Math.pow(10, v)), vis: () => i < state.n - 1 });
+}
+const fa = $('fs-ab');
+addSlider(fa, 's-lo', { label: 'log₁₀ frekuensi minimum', min: -5, max: 0, step: 0.1, get: () => state.lo, set: v => state.lo = Math.min(v, state.hi - 1), fmt: v => v.toFixed(1) + ' (' + fmtF(v) + ')' });
+addSlider(fa, 's-hi', { label: 'log₁₀ frekuensi maksimum', min: 0, max: 5, step: 0.1, get: () => state.hi, set: v => state.hi = Math.max(v, state.lo + 1), fmt: v => v.toFixed(1) + ' (' + fmtF(v) + ')' });
+addSlider(fa, 's-np', { label: 'Jumlah frekuensi', min: 10, max: 80, step: 1, get: () => state.np, set: v => state.np = v, fmt: v => String(v) });
+addSlider(fa, 's-nz', { label: 'Noise (%)', min: 0, max: 15, step: 0.5, get: () => state.noise, set: v => state.noise = v, fmt: v => v.toFixed(1) });
+const fg = $('fs-gwo');
+const gs = [
+  { label: 'Jumlah lapisan prediksi', min: 2, max: 4, step: 1, get: () => I.nl, set: v => I.nl = v, fmt: v => String(v) },
+  { label: 'Populasi serigala', min: 20, max: 300, step: 10, get: () => I.npop, set: v => I.npop = v, fmt: v => String(v) },
+  { label: 'Jumlah iterasi', min: 50, max: 1000, step: 50, get: () => I.ni, set: v => I.ni = v, fmt: v => String(v) },
+  { label: 'ρ minimum (Ω·m)', min: 0, max: 2, step: 0.02, get: () => Math.log10(I.rmin), set: v => I.rmin = Math.pow(10, v), fmt: v => fmtRho(Math.pow(10, v)) },
+  { label: 'ρ maksimum (Ω·m)', min: 2, max: 4, step: 0.02, get: () => Math.log10(I.rmax), set: v => I.rmax = Math.pow(10, v), fmt: v => fmtRho(Math.pow(10, v)) },
+  { label: 'Tebal minimum (m)', min: 0, max: 500, step: 10, get: () => I.tmin, set: v => I.tmin = Math.min(v, I.tmax - 1), fmt: v => String(v) },
+  { label: 'Tebal maksimum (m)', min: 500, max: 10000, step: 100, get: () => I.tmax, set: v => I.tmax = Math.max(v, I.tmin + 1), fmt: v => String(v) },
+];
+const holder = document.createElement('div'); fg.querySelector('legend').after(holder);
+gs.forEach((s, i) => addSlider(holder, 'g' + i, s));
+[['amode', 'amode'], ['wmode', 'wmode'], ['mis', 'misfit']].forEach(([id, key]) => $(id).addEventListener('change', e => { I[key] = e.target.value; invalidate(); }));
+
+document.querySelectorAll('[data-p]').forEach(b => b.addEventListener('click', () => {
+  const p = PRESETS[b.dataset.p]; state.n = p.n; state.rho = p.rho.slice(); state.h = p.h.slice(); I.nl = p.n; syncInputs(); invalidate();
+}));
+$('logc').addEventListener('change', draw);
+
+// ---------- data observasi ----------
+function mkData() {
+  const n = state.n, rho = state.rho.slice(0, n), th = state.h.slice(0, n - 1), np = state.np;
+  const f = Float64Array.from({ length: np }, (_, k) => Math.pow(10, state.lo + (state.hi - state.lo) * k / (np - 1)));
+  const dr = new Float64Array(np), dp = new Float64Array(np), r = new Float64Array(np), p = new Float64Array(np);
+  mt1d(rho, th, f, dr, dp);
+  const rn = mulberry32(state.nseed), nl = state.noise / 100;
+  const g = () => Math.sqrt(-2 * Math.log(Math.max(rn(), 1e-12))) * Math.cos(2 * Math.PI * rn());
+  for (let k = 0; k < np; k++) {
+    const mag = Math.sqrt(dr[k] * 2 * Math.PI * f[k] * MU), a = dp[k] * Math.PI / 180, q = 1 + nl * g();
+    r[k] = Math.max(dr[k] * q * q, dr[k] * 1e-3);
+    p[k] = Math.atan2(mag * Math.sin(a) * (1 + nl * g()), mag * Math.cos(a) * (1 + nl * g())) * 180 / Math.PI;
+  }
+  return { f, r, p, rho, th };
+}
+function invalidate() { stopRun(); gwo = null; elapsed = 0; cur = mkData(); render(); }
+
+// ---------- kontrol jalannya inversi ----------
+function setBtns() { $('run').disabled = running; $('stop').disabled = !running; }
+function stopRun() { running = false; cancelAnimationFrame(raf); setBtns(); }
+function startRun() {
+  stopRun(); cur = cur || mkData();
+  gwo = makeGWO({ ...I }, cur, cur.f); I.seed++;
+  running = true; elapsed = 0; tStart = performance.now(); setBtns(); tick();
+}
+function tick() {
+  if (!running) return;
+  const t0 = performance.now();
+  while (gwo.iter < gwo.cfg.ni && performance.now() - t0 < 14) gwo.step();
+  elapsed = performance.now() - tStart; render();
+  if (gwo.iter >= gwo.cfg.ni) stopRun(); else raf = requestAnimationFrame(tick);
+}
+$('run').addEventListener('click', startRun);
+$('stop').addEventListener('click', () => { stopRun(); elapsed = performance.now() - tStart; render(); });
+$('reset').addEventListener('click', invalidate);
+
+// ---------- menggambar ----------
+const L = 58, R = 28, T = 34, B = 40, T2 = 14, G = 14;
+const cssv = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const tickTxt = k => String(+Math.pow(10, k).toPrecision(3));
+function setup(c) {
+  const dpr = window.devicePixelRatio || 1, w = c.parentElement.clientWidth, h = c.parentElement.clientHeight;
+  c.style.width = w + 'px'; c.style.height = h + 'px'; c.width = Math.round(w * dpr); c.height = Math.round(h * dpr);
+  const ctx = c.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); return { ctx, w, h };
+}
+function niceTicks(lo, hi, n) {
+  const raw = (hi - lo) / n, p = Math.pow(10, Math.floor(Math.log10(raw))), f = raw / p, step = (f < 1.5 ? 1 : f < 3 ? 2 : f < 7 ? 5 : 10) * p;
+  const out = []; for (let t = Math.ceil(lo / step) * step; t <= hi + 1e-9; t += step) out.push(+t.toFixed(10)); return out;
+}
+function gridLine(ctx, o, q, label, alpha) {
+  q = Math.round(q) + 0.5; ctx.strokeStyle = o.grid; ctx.globalAlpha = alpha; ctx.beginPath();
+  if (o.horiz) { ctx.moveTo(q, o.a); ctx.lineTo(q, o.b); } else { ctx.moveTo(o.a, q); ctx.lineTo(o.b, q); }
+  ctx.stroke(); ctx.globalAlpha = 1;
+  if (label != null) { ctx.fillStyle = o.muted; if (o.horiz) { if (!o.nolab) { ctx.textAlign = 'center'; ctx.textBaseline = 'top'; ctx.fillText(label, q, o.b + 8); } } else { ctx.textAlign = 'right'; ctx.textBaseline = 'middle'; ctx.fillText(label, o.a - 8, q); } }
+}
+function logAxis(ctx, o) {
+  ctx.lineWidth = 1;
+  for (let k = Math.floor(o.lo); k <= Math.ceil(o.hi); k++) for (let m = 1; m < 10; m++) {
+    const lg = k + Math.log10(m); if (lg < o.lo - 1e-9 || lg > o.hi + 1e-9) continue;
+    gridLine(ctx, o, o.pos(lg), m === 1 ? tickTxt(k) : null, m === 1 ? 1 : 0.45);
+  }
+}
+function linAxis(ctx, o, ticks) { ctx.lineWidth = 1; ticks.forEach(t => gridLine(ctx, o, o.pos(t), String(t), 1)); }
+function frame(ctx, pw, ph, top, xl, yl, muted) {
+  ctx.strokeStyle = muted; ctx.lineWidth = 1; ctx.strokeRect(L + 0.5, top + 0.5, pw - 1, ph - 1);
+  ctx.fillStyle = muted; ctx.textAlign = 'center'; ctx.textBaseline = 'top'; ctx.fillText(xl, L + pw / 2, top + ph + 24);
+  ctx.save(); ctx.translate(13, top + ph / 2); ctx.rotate(-Math.PI / 2); ctx.textBaseline = 'middle'; ctx.fillText(yl, 0, 0); ctx.restore();
+}
+function legend(ctx, items, ink) {
+  let x = L; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+  items.forEach(([txt, col, kind]) => {
+    ctx.strokeStyle = col; ctx.fillStyle = col; ctx.lineWidth = 2.4; ctx.setLineDash([]);
+    if (kind === 'dot') { ctx.beginPath(); ctx.arc(x + 8, 15, 3.2, 0, 7); ctx.fill(); } else { ctx.beginPath(); ctx.moveTo(x, 15); ctx.lineTo(x + 18, 15); ctx.stroke(); }
+    ctx.fillStyle = ink; ctx.fillText(txt, x + 24, 15); x += 32 + ctx.measureText(txt).width;
+  });
+}
+function stair(ctx, r, t, X, Y, big, col, dash, wd) {
+  ctx.beginPath(); ctx.strokeStyle = col; ctx.lineWidth = wd; ctx.setLineDash(dash); let z = 0;
+  for (let i = 0; i < r.length; i++) {
+    const x = X(Math.log10(r[i])), z2 = i < t.length ? z + t[i] : big;
+    i ? ctx.lineTo(x, Y(z)) : ctx.moveTo(x, Y(0)); ctx.lineTo(x, Y(z2)); z = z2;
+  }
+  ctx.stroke(); ctx.setLineDash([]);
+}
+function clip(ctx, x, y, w, h) { ctx.save(); ctx.beginPath(); ctx.rect(x, y, w, h); ctx.clip(); }
+function curve(ctx, xs, ys, X, Y, col) {
+  ctx.beginPath(); ctx.strokeStyle = col; ctx.lineWidth = 2.6;
+  xs.forEach((f, i) => { const x = X(Math.log10(f)), y = Y(ys[i]); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }); ctx.stroke();
+}
+
+function draw() {
+  if (!cur || !$('c1').parentElement.clientWidth || !$('c1').parentElement.clientHeight) return;
+  const ink = cssv('--ink'), muted = cssv('--muted'), grid = cssv('--grid'), accent = cssv('--accent'), warm = cssv('--warm');
+  const font = '12px ' + cssv('--font-body'), inv = gwo && gwo.lead[0].r ? gwo.lead[0] : null;
+  const { f, r, p } = cur, ni = gwo ? gwo.cfg.ni : I.ni;
+  let cr = null, cp = null;
+  if (inv) { cr = new Float64Array(f.length); cp = new Float64Array(f.length); mt1d(inv.r, inv.t, f, cr, cp); }
+
+  // ===== 1: kurva ρa (atas) dan fase (bawah) =====
+  let { ctx, w, h } = setup($('c1'));
+  const pw = w - L - R, ph1 = Math.floor((h - T - B - G) * 0.6), top2 = T + ph1 + G, ph2 = h - top2 - B; ctx.font = font;
+  const xlo = Math.floor(Math.log10(f[0]) + 1e-9); let xhi = Math.ceil(Math.log10(f[f.length - 1]) - 1e-9); if (xhi <= xlo) xhi = xlo + 1;
+  const ylo = Math.floor(Math.log10(Math.min(...r)) - 0.15), yhi = Math.max(ylo + 1, Math.ceil(Math.log10(Math.max(...r)) + 0.15));
+  const plo = Math.min(0, Math.floor(Math.min(...p) / 10) * 10), phi = Math.max(90, Math.ceil(Math.max(...p) / 10) * 10);
+  const X = lg => L + (lg - xlo) / (xhi - xlo) * pw, Y = lg => T + (yhi - lg) / (yhi - ylo) * ph1, Yp = v => top2 + (phi - v) / (phi - plo) * ph2;
+  logAxis(ctx, { lo: xlo, hi: xhi, horiz: true, pos: X, a: T, b: T + ph1, grid, muted, nolab: true });
+  logAxis(ctx, { lo: ylo, hi: yhi, horiz: false, pos: Y, a: L, b: L + pw, grid, muted });
+  frame(ctx, pw, ph1, T, '', 'ρₐ (Ω·m)', muted);
+  logAxis(ctx, { lo: xlo, hi: xhi, horiz: true, pos: X, a: top2, b: top2 + ph2, grid, muted });
+  linAxis(ctx, { horiz: false, a: L, b: L + pw, grid, muted, pos: Yp }, niceTicks(plo, phi, 4));
+  frame(ctx, pw, ph2, top2, 'Frekuensi (Hz)', 'Fase (°)', muted);
+  clip(ctx, L, T, pw, ph1);
+  if (inv) curve(ctx, f, cr, X, v => Y(Math.log10(v)), warm);
+  ctx.fillStyle = accent; r.forEach((v, i) => { ctx.beginPath(); ctx.arc(X(Math.log10(f[i])), Y(Math.log10(v)), 3, 0, 7); ctx.fill(); });
+  ctx.restore(); clip(ctx, L, top2, pw, ph2);
+  if (inv) curve(ctx, f, cp, X, Yp, warm);
+  ctx.fillStyle = accent; p.forEach((v, i) => { ctx.beginPath(); ctx.arc(X(Math.log10(f[i])), Yp(v), 3, 0, 7); ctx.fill(); });
+  ctx.restore(); legend(ctx, [['Data observasi', accent, 'dot'], ['Kurva GWO (α)', warm, 'line']], ink);
+
+  // ===== 2: model =====
+  ({ ctx, w, h } = setup($('c2'))); ctx.font = font;
+  const ph = h - T2 - B, sum = cur.th.reduce((s, x) => s + x, 0), Dmax = Math.max(10, sum * 1.6);
+  const rlo = Math.floor(Math.log10(Math.min(I.rmin, ...cur.rho)) + 1e-9), rhi = Math.max(rlo + 1, Math.ceil(Math.log10(Math.max(I.rmax, ...cur.rho)) - 1e-9));
+  const X2 = lg => L + (lg - rlo) / (rhi - rlo) * pw, Y2 = z => T2 + z / Dmax * ph;
+  logAxis(ctx, { lo: rlo, hi: rhi, horiz: true, pos: X2, a: T2, b: T2 + ph, grid, muted });
+  linAxis(ctx, { horiz: false, a: L, b: L + pw, grid, muted, pos: Y2 }, niceTicks(0, Dmax, 5));
+  frame(ctx, pw, ph, T2, 'Resistivitas (Ω·m)', 'Kedalaman (m)', muted);
+  clip(ctx, L, T2, pw, ph);
+  stair(ctx, cur.rho, cur.th, X2, Y2, Dmax * 3, accent, [], 2.8);
+  if (inv) stair(ctx, inv.r, inv.t, X2, Y2, Dmax * 3, warm, [6, 4], 2.8);
+  ctx.restore();
+  ctx.font = font; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillStyle = ink;
+  ctx.strokeStyle = accent; ctx.lineWidth = 2.8; ctx.beginPath(); ctx.moveTo(L + 8, T2 + 12); ctx.lineTo(L + 28, T2 + 12); ctx.stroke(); ctx.fillText('Model sebenarnya', L + 34, T2 + 12);
+  ctx.strokeStyle = warm; ctx.setLineDash([6, 4]); ctx.beginPath(); ctx.moveTo(L + 8, T2 + 30); ctx.lineTo(L + 28, T2 + 30); ctx.stroke(); ctx.setLineDash([]); ctx.fillText('Model GWO', L + 34, T2 + 30);
+
+  // ===== 3: konvergensi =====
+  ({ ctx, w, h } = setup($('c3'))); ctx.font = font;
+  const phc = h - T - B, c = gwo ? gwo.curves : { a: [], b: [], d: [], o: [] }, lg = $('logc').checked;
+  const ser = [[c.a, warm, 'α (alpha)'], [c.b, accent, 'β (beta)'], [c.d, '#a24fb3', 'δ (delta)'], [c.o, '#5a9a3c', 'ω (omega)']];
+  const fin = ser.flatMap(s => s[0]).filter(isFinite), mx = fin.length ? Math.max(...fin) : 1;
+  const tr = v => Math.log10(Math.max(v, 1e-4)), Xc = it => L + it / ni * pw;
+  linAxis(ctx, { horiz: true, a: T, b: T + phc, grid, muted, pos: Xc }, niceTicks(0, ni, 6));
+  let Yc;
+  if (lg) {
+    const vs = fin.length ? fin.map(tr) : [0, 1], lo = Math.floor(Math.min(...vs)), hi = Math.max(lo + 1, Math.ceil(Math.max(...vs)));
+    Yc = v => T + (hi - tr(v)) / (hi - lo) * phc; logAxis(ctx, { lo, hi, horiz: false, pos: q => T + (hi - q) / (hi - lo) * phc, a: L, b: L + pw, grid, muted });
+  } else {
+    const top = mx * 1.05; Yc = v => T + (1 - v / top) * phc; linAxis(ctx, { horiz: false, a: L, b: L + pw, grid, muted, pos: Yc }, niceTicks(0, top, 5));
+  }
+  frame(ctx, pw, phc, T, 'Iterasi', 'Misfit (%)', muted);
+  clip(ctx, L, T, pw, phc);
+  ser.forEach(([arr, col]) => {
+    ctx.beginPath(); ctx.strokeStyle = col; ctx.lineWidth = 2; let pen = false;
+    arr.forEach((v, i) => { if (!isFinite(v)) { pen = false; return; } const x = Xc(i + 1), y = Yc(v); pen ? ctx.lineTo(x, y) : ctx.moveTo(x, y); pen = true; }); ctx.stroke();
+  });
+  ctx.restore(); legend(ctx, ser.map(s => [s[2], s[1], 'line']), ink);
+}
+
+function render() {
+  draw();
+  const g = gwo, n = cur.rho.length, nl = g ? g.cfg.nl : I.nl, inv = g && g.lead[0].r ? g.lead[0] : null;
+  $('stats').innerHTML = g
+    ? `<li>Iterasi <b>${g.iter} / ${g.cfg.ni}</b></li><li>Misfit α <b>${isFinite(g.lead[0].s) ? g.lead[0].s.toFixed(3) : '–'} %</b></li>` +
+      `<li>Evaluasi forward <b>${g.evals}</b></li><li>Waktu <b>${(elapsed / 1000).toFixed(2)} s</b></li><li>Seed <b>${g.cfg.seed}</b></li>`
+    : '<li>Atur model dan parameter, lalu klik <b>Jalankan inversi</b>.</li>';
+  let html = '<table><thead><tr><th>Lapisan</th><th>ρ sebenarnya (Ω·m)</th><th>ρ GWO (Ω·m)</th><th>h sebenarnya (m)</th><th>h GWO (m)</th></tr></thead><tbody>';
+  for (let i = 0; i < Math.max(n, nl); i++) {
+    html += `<tr><td>${i + 1}</td><td>${i < n ? fmtRho(cur.rho[i]) : '–'}</td><td>${inv && i < nl ? fmtRho(inv.r[i]) : '–'}</td>` +
+      `<td>${i < n - 1 ? fmtH(cur.th[i]) : i < n ? '∞' : '–'}</td><td>${inv && i < nl - 1 ? fmtH(inv.t[i]) : inv && i < nl ? '∞' : '–'}</td></tr>`;
+  }
+  $('res').innerHTML = html + '</tbody></table>';
+}
+
+let pend = 0;
+const ro = new ResizeObserver(() => { if (pend) return; pend = requestAnimationFrame(() => { pend = 0; if (cur) draw(); }); });
+document.querySelectorAll('.cwrap').forEach(e => ro.observe(e));
+$('toggle').addEventListener('click', () => {
+  const hid = $('layout').classList.toggle('hide-ctrl');
+  $('toggle').textContent = hid ? 'Tampilkan parameter' : 'Sembunyikan parameter';
+  $('toggle').setAttribute('aria-expanded', String(!hid));
+});
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { if (cur) draw(); });
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if (cur) draw(); });
+
+// ---------- mulai ----------
+syncInputs(); setBtns(); invalidate();
+</script>
+</body>
+</html>
