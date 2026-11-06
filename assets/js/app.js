@@ -59,11 +59,11 @@ const stamp=()=>`<p class="muted">${u('upd')}: ${D.site.updated} · ${u('src')}:
 const V={
 home(){const s=D.site;
  return `<section class="hero"><div class="hero-copy"><span class="role">${esc(t(s.jabatan))} · ${esc(s.afiliasi)}</span><h1>${esc(s.nama)}</h1><p>${esc(t(s.ringkas))}</p>
- <div class="hero-actions"><a class="btn" href="${H('kontak')}">${u('hubungi')}</a><a class="btn alt" href="${H('profil')}">${u('profil')} <span aria-hidden="true">→</span></a></div></div>
+ <div class="hero-actions"><a class="btn" href="${H('kontak')}">${u('hubungi')}</a><a class="btn alt" href="${H('profil')}">${u('profil')} <span aria-hidden="true">→</span></a><a class="btn alt" href="${H('cv')}">${u('cv')}</a></div></div>
  <div class="photo" role="img" aria-label="Foto ${esc(s.nama)}" style="background-image:url('${esc(img(s.foto))}')"><span>${lang=='id'?'Teknik Geofisika':'Geophysical Engineering'}</span></div>
  <svg class="seismo" viewBox="0 0 1000 70" preserveAspectRatio="none" aria-hidden="true"><path d="M0 35H180l10-10 12 22 14-36 16 52 14-46 12 30 10-12H520l8-8 10 16 12-28 14 40 10-22 8 8H1000"/></svg></section>
  <section class="home-focus"><div><p class="eyebrow">${lang=='id'?'FOKUS KEAHLIAN':'AREAS OF FOCUS'}</p><div class="focus-strip">${(s.keahlian||[]).map(k=>`<span class="chip">${esc(t(k))}</span>`).join('')}</div></div><p>${esc(t(s.bio))}</p></section>`},
- profil(){const s=D.site;return `<header class="page-heading"><div><p class="eyebrow">${lang=='id'?'TENTANG SAYA':'ABOUT ME'}</p><h1>${u('profil')}</h1></div></header><div class="profile-layout"><section class="profile-bio"><h2>${lang=='id'?'Profil akademik':'Academic profile'}</h2><p>${esc(t(s.bio))}</p><div class="profile-details"><div><span class="eyebrow">${lang=='id'?'AFILIASI':'AFFILIATION'}</span><b>${esc(s.afiliasi)}</b></div><div><span class="eyebrow">${lang=='id'?'LOKASI':'LOCATION'}</span><b>${esc(s.alamat)}</b></div><div><span class="eyebrow">EMAIL</span><a href="mailto:${esc(s.email)}">${esc(s.email)}</a></div></div></section><section class="profile-education"><h2>${lang=='id'?'Pendidikan':'Education'}</h2><ol class="education-list">${s.pendidikan.map(e=>`<li><span class="education-year">${esc(e.tahun)}</span><div><b>${esc(e.jenjang)}</b><p>${esc(e.kampus)}</p></div></li>`).join('')}</ol></section></div><section class="section-block"><h2 class="section-title">${lang=='id'?'Profil akademik & jejaring':'Academic profiles & networks'}</h2><div class="profile-links">${Object.entries(s.links).map(([k,v])=>`<a class="profile-link" href="${esc(v)}" target="_blank" rel="noopener"><span>${esc(k)}</span><span aria-hidden="true">↗</span></a>`).join('')}</div></section>`},
+ profil(){const s=D.site;return `<header class="page-heading"><div><p class="eyebrow">${lang=='id'?'TENTANG SAYA':'ABOUT ME'}</p><h1>${u('profil')}</h1></div><a class="btn" href="${H('cv')}">${u('cv')}</a></header><div class="profile-layout"><section class="profile-bio"><h2>${lang=='id'?'Profil akademik':'Academic profile'}</h2><p>${esc(t(s.bio))}</p><div class="profile-details"><div><span class="eyebrow">${lang=='id'?'AFILIASI':'AFFILIATION'}</span><b>${esc(s.afiliasi)}</b></div><div><span class="eyebrow">${lang=='id'?'LOKASI':'LOCATION'}</span><b>${esc(s.alamat)}</b></div><div><span class="eyebrow">EMAIL</span><a href="mailto:${esc(s.email)}">${esc(s.email)}</a></div></div></section><section class="profile-education"><h2>${lang=='id'?'Pendidikan':'Education'}</h2><ol class="education-list">${s.pendidikan.map(e=>`<li><span class="education-year">${esc(e.tahun)}</span><div><b>${esc(e.jenjang)}</b><p>${esc(e.kampus)}</p></div></li>`).join('')}</ol></section></div><section class="section-block"><h2 class="section-title">${lang=='id'?'Profil akademik & jejaring':'Academic profiles & networks'}</h2><div class="profile-links">${Object.entries(s.links).map(([k,v])=>`<a class="profile-link" href="${esc(v)}" target="_blank" rel="noopener"><span>${esc(k)}</span><span aria-hidden="true">↗</span></a>`).join('')}</div></section>`},
  penelitian(){return `<header class="page-heading"><div><p class="eyebrow">${lang=='id'?'RISET & PUBLIKASI':'RESEARCH & PUBLICATIONS'}</p><h1>${u('penelitian')}</h1></div>${stamp()}</header><section class="section-block"><h2 class="section-title">${lang=='id'?'Ringkasan publikasi':'Publication overview'}</h2><div class="charts">${box('c1')}${box('c2')}${box('c3')}${box('c4')}</div></section>
   <section class="section-block"><h2 class="section-title">${lang=='id'?'Topik penelitian':'Research topics'}</h2><div class="cloud" id="cloud"></div><p id="sum" class="muted"></p></section>
   <section class="section-block"><h2 class="section-title">${lang=='id'?'Daftar publikasi':'Publications'}</h2><div class="tools filter-panel"><input id="q" type="search" placeholder="${u('search')}" aria-label="${u('search')}"><select id="fy" aria-label="${u('year')}"></select><select id="ft" aria-label="${u('type')}"></select><select id="fp" aria-label="Peran"></select><select id="fq" aria-label="Peringkat"></select></div><div class="record-list" id="list"></div></section><section class="section-block"><h2 class="section-title">Hibah</h2><div class="record-list">${D.hibah.map(h=>`<article class="record-card"><span class="record-year">${esc(h.tahun)}</span><div><h3>${esc(h.judul)}</h3><p class="record-meta">${esc(h.skema)} · ${esc(h.peran)}</p></div></article>`).join('')}</div></section>`},
@@ -141,6 +141,78 @@ const after={
   const el=$('#md');el.innerHTML=md.render(await (await fetch(B+b.file)).text());
   const toc=$('#toc');el.querySelectorAll('h2,h3').forEach((h,i)=>{h.id='b'+i;toc.insertAdjacentHTML('beforeend',`<a href="javascript:document.getElementById('b${i}').scrollIntoView()">${h.textContent}</a>`)});
   renderMathInElement(el,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})}};
+
+/* ---- CV: pilih bagian & butir, pratinjau, lalu simpan sebagai PDF lewat dialog cetak ---- */
+const tl=(o,cl)=>o&&typeof o==='object'?(o[cl]||o.id):o;
+const rawDoi=d=>String(d).replace(/^https?:\/\/(dx\.)?doi\.org\//i,'').replace(/^doi:\s*/i,'');
+const shortUrl=x=>{x=String(x).replace(/^https?:\/\/(www\.)?/,'').replace(/\/$/,'');return x.length>56?x.slice(0,55)+'…':x};
+/* Daftar bagian CV (urutan = urutan di kertas). rows = butir, key = id stabil butir (disimpan saat dikecualikan),
+   lab = teks di daftar pilihan, html = tampilan di kertas, pick = boleh memilih butir satu per satu */
+const cvSecs=(cl,names)=>{const s=D.site,tt=o=>tl(o,cl),desc=(a,k)=>[...(a||[])].sort((x,y)=>(+y[k]||0)-(+x[k]||0)),
+ li=(yr,body)=>`<li class="cv-item"><span class="cv-yr">${esc(yr)}</span><div>${body}</div></li>`,
+ meta=(a,...h)=>`<span class="cv-meta">${[...a.filter(Boolean).map(esc),...h.filter(Boolean)].join(' · ')}</span>`;
+ return [
+ {k:'bio',l:{id:'Profil singkat',en:'Summary'},rows:[s],key:()=>'bio',html:()=>`<p>${esc(tt(s.bio))}</p>`,wrap:h=>h.join('')},
+ {k:'keahlian',l:{id:'Keahlian',en:'Expertise'},pick:1,rows:s.keahlian||[],key:x=>x.id||x,lab:x=>tt(x),html:x=>esc(tt(x)),wrap:h=>`<p>${h.join(' · ')}</p>`},
+ {k:'pendidikan',l:{id:'Pendidikan',en:'Education'},pick:1,rows:s.pendidikan||[],key:e=>e.jenjang+'|'+e.kampus,lab:e=>`${e.jenjang} · ${e.kampus}`,
+  html:e=>li(e.tahun,`<b>${esc(e.jenjang)}</b> — ${esc(e.kampus)}`)},
+ {k:'pengalaman',l:{id:'Pengalaman',en:'Experience'},pick:1,rows:desc(D.pengalaman,'tahun'),key:x=>[x.tahun,x.instansi,x.keterangan].join('|'),lab:x=>`${x.tahun} · ${x.instansi}`,
+  html:x=>li(x.tahun,`<b>${esc(x.instansi)}</b>${x.status?` ${meta([`(${x.status})`])}`:''}${x.keterangan?`<br>${esc(x.keterangan)}`:''}`)},
+ {k:'publikasi',l:{id:'Publikasi',en:'Publications'},pick:1,rows:desc(D.publikasi,'tahun'),key:p=>p.judul,lab:p=>`${p.tahun} · ${p.judul}`,
+  html:p=>li(p.tahun,`<b>${esc(p.judul)}</b><br>${esc(p.penulis)} · <i>${esc(p.jurnal)}</i><br>${meta([p.jenis,p.peran,p.kuartil,p.sinta&&String(p.sinta).replace(/^S/i,'SINTA ')],p.doi&&`<a href="${esc(doiUrl(p.doi))}">doi:${esc(rawDoi(p.doi))}</a>`)}`)},
+ {k:'hibah',l:{id:'Hibah penelitian',en:'Research grants'},pick:1,rows:desc(D.hibah,'tahun'),key:h=>h.judul,lab:h=>`${h.tahun} · ${h.judul}`,
+  html:h=>li(h.tahun,`<b>${esc(h.judul)}</b><br>${meta([h.skema,h.peran])}`)},
+ {k:'pengabdian',l:{id:'Pengabdian kepada masyarakat',en:'Community service'},pick:1,rows:desc(D.pengabdian,'tahun'),key:p=>p.judul,lab:p=>`${p.tahun} · ${p.judul}`,
+  html:p=>li(p.tahun,`<b>${esc(p.judul)}</b><br>${meta([p.mitra,p.lokasi,p.bidang])}`)},
+ {k:'mengajar',l:{id:'Pengajaran',en:'Teaching'},pick:1,rows:D.mk||[],key:c=>c.id,lab:c=>`${c.kode} ${tt(c.nama)}`,
+  html:c=>li(c.kode,`<b>${esc(tt(c.nama))}</b> ${meta([`${c.sks} SKS`,`Semester ${c.semester}`])}`)},
+ {k:'bimbingan',l:{id:'Bimbingan mahasiswa',en:'Student supervision'},pick:1,rows:desc(D.bimbingan,'tahun'),key:b=>b.nama+'|'+b.topik,lab:b=>`${b.tahun} · ${b.nama} — ${b.topik}`,
+  html:b=>li(b.tahun,`${names?`<b>${esc(b.nama)}</b> — ${esc(b.topik)}`:`<b>${esc(b.topik)}</b>`}<br>${meta([`${b.jenjang} ${b.jenis}`,b.status])}`)},
+ {k:'tautan',l:{id:'Profil & tautan',en:'Profiles & links'},pick:1,rows:Object.entries(s.links||{}),key:e=>e[0],lab:e=>e[0],
+  html:e=>li(e[0],`<a href="${esc(e[1])}">${esc(shortUrl(e[1]))}</a>`),wrap:h=>`<ul class="cv-list wide">${h.join('')}</ul>`}]};
+/* Pilihan cepat: on = bagian yang aktif (null = semua) */
+const PRE={full:{l:{id:'Lengkap',en:'Full'},on:null},
+ ak:{l:{id:'Akademik',en:'Academic'},on:['bio','keahlian','pendidikan','pengalaman','publikasi','hibah','pengabdian','mengajar','tautan']},
+ short:{l:{id:'Ringkas',en:'Short'},on:['bio','pendidikan','pengalaman','publikasi']}};
+V.cv=()=>`<header class="page-heading"><div><p class="eyebrow">CURRICULUM VITAE</p><h1>CV</h1><p class="page-intro">${lang=='id'?'Pilih bagian dan butir yang ingin dimasukkan, periksa pratinjau, lalu unduh sebagai PDF.':'Choose the sections and items to include, check the preview, then download it as a PDF.'}</p></div></header>
+ <div class="cv-layout"><aside class="cv-controls" id="cvc" aria-label="${lang=='id'?'Pengaturan CV':'CV settings'}"></aside><div class="cv-stage"><article class="cv-paper" id="cvp" aria-label="${lang=='id'?'Pratinjau CV':'CV preview'}"></article></div></div>`;
+after.cv=()=>{
+ const ui=(a,b)=>lang=='id'?a:b,def={hdr:{foto:0,email:1,alamat:1,stats:0,names:0}};let cfg={};
+ try{cfg=JSON.parse(localStorage.cvcfg||'{}')||{}}catch(e){}
+ cfg={on:cfg.on||{},off:cfg.off||{},hdr:{...def.hdr,...(cfg.hdr||{})}};
+ let cl=lang;const op=new Set(),S0=()=>cvSecs(cl,!!cfg.hdr.names),offs=k=>new Set(cfg.off[k]||[]),sel=x=>x.rows.filter(r=>!offs(x.k).has(x.key(r))),
+  save=()=>{try{localStorage.cvcfg=JSON.stringify(cfg)}catch(e){}},cnt=x=>`(${sel(x).length}/${x.rows.length})`;
+ const panel=()=>{const S=S0(),hd=[['foto',ui('Foto','Photo')],['email','Email'],['alamat',ui('Lokasi','Location')],['stats',ui('Sitasi & h-index','Citations & h-index')]];
+  $('#cvc').innerHTML=`<button type="button" class="btn cv-print" data-act="print">⬇ ${ui('Unduh PDF','Download PDF')}</button>
+  <p class="muted cv-tip">${ui('Di dialog cetak pilih “Simpan sebagai PDF”, lalu matikan opsi “Header dan footer”.','In the print dialog choose “Save as PDF”, then turn off “Headers and footers”.')}</p>
+  <h2>${ui('Bahasa CV','CV language')}</h2><select id="cvlang" aria-label="${ui('Bahasa CV','CV language')}"><option value="id">Bahasa Indonesia</option><option value="en">English</option></select>
+  <h2>${ui('Pilihan cepat','Presets')}</h2><div class="cv-presets">${Object.entries(PRE).map(([k,p])=>`<button type="button" class="cv-mini" data-act="pre" data-v="${k}">${p.l[lang]}</button>`).join('')}</div>
+  <h2>${ui('Kepala CV','Header')}</h2>${hd.map(([k,l])=>`<div class="cv-row"><label><input type="checkbox" data-hdr="${k}"${cfg.hdr[k]?' checked':''}> ${l}</label></div>`).join('')}
+  <h2>${ui('Bagian','Sections')}</h2>${S.map(x=>{const n=x.rows.length,o=offs(x.k);
+   return `<div class="cv-row"><label><input type="checkbox" data-sec="${x.k}"${cfg.on[x.k]!==false&&n?' checked':''}${n?'':' disabled'}> <span>${esc(x.l[lang])}</span> <span class="muted cv-n" data-n="${x.k}">${n?cnt(x):ui('(kosong)','(empty)')}</span></label>
+   ${x.k=='bimbingan'?`<label class="cv-sub"><input type="checkbox" data-hdr="names"${cfg.hdr.names?' checked':''}> ${ui('Tampilkan nama mahasiswa','Show student names')}</label>`:''}
+   ${x.pick&&n>1?`<details data-d="${x.k}"${op.has(x.k)?' open':''}><summary>${ui('Pilih butir','Choose items')}</summary><div class="cv-bulk"><button type="button" class="cv-mini" data-act="all" data-v="${x.k}">${ui('Semua','All')}</button><button type="button" class="cv-mini" data-act="none" data-v="${x.k}">${ui('Kosongkan','None')}</button></div><div class="cv-items">${x.rows.map(r=>`<label><input type="checkbox" data-item="${x.k}" data-key="${esc(x.key(r))}"${o.has(x.key(r))?'':' checked'}> <span>${esc(x.lab(r))}</span></label>`).join('')}</div></details>`:''}</div>`}).join('')}`;
+  $('#cvlang').value=cl};
+ const paper=()=>{const s=D.site,h=cfg.hdr,tt=o=>tl(o,cl),
+  contact=[h.email&&s.email&&`<a href="mailto:${esc(s.email)}">${esc(s.email)}</a>`,h.alamat&&s.alamat&&esc(s.alamat),h.stats&&s.stats&&`${cl=='id'?'Sitasi':'Citations'} ${esc(s.stats.sitasi)} · h-index ${esc(s.stats.hindex)}`].filter(Boolean).join(' · ');
+  const body=S0().filter(x=>cfg.on[x.k]!==false).map(x=>{const r=sel(x);return r.length?`<section class="cv-sec"><h2>${esc(x.l[cl])}</h2>${(x.wrap||(a=>`<ul class="cv-list">${a.join('')}</ul>`))(r.map(i=>x.html(i)))}</section>`:''}).join('');
+  $('#cvp').innerHTML=`<header class="cv-head"><div><h1>${esc(s.nama)}</h1><p class="cv-role">${esc(tt(s.jabatan))} · ${esc(s.afiliasi)}</p>${contact?`<p class="cv-contact">${contact}</p>`:''}</div>${h.foto&&s.foto?`<img class="cv-photo" src="${esc(img(s.foto))}" alt="">`:''}</header>${body||`<p class="cv-meta">${cl=='id'?'Belum ada bagian yang dipilih.':'No sections selected.'}</p>`}`};
+ const box=$('#cvc');
+ box.onchange=e=>{const g=e.target,d=g.dataset;
+  if(g.id=='cvlang'){cl=g.value;panel();return paper()}
+  if(d.sec)cfg.on[d.sec]=g.checked;
+  else if(d.hdr)cfg.hdr[d.hdr]=g.checked?1:0;
+  else if(d.item){const a=offs(d.item);g.checked?a.delete(d.key):a.add(d.key);cfg.off[d.item]=[...a];const x=S0().find(y=>y.k==d.item),n=box.querySelector(`.cv-n[data-n="${d.item}"]`);if(n)n.textContent=cnt(x)}
+  save();paper()};
+ box.onclick=e=>{const b=e.target.closest('[data-act]');if(!b)return;const a=b.dataset.act,v=b.dataset.v;
+  if(a=='print')return window.print();
+  if(a=='pre'){const p=PRE[v];S0().forEach(x=>cfg.on[x.k]=!p.on||p.on.includes(x.k))}
+  else{const x=S0().find(y=>y.k==v);cfg.off[v]=a=='all'?[]:x.rows.map(r=>x.key(r))}
+  save();panel();paper()};
+ box.addEventListener('toggle',e=>{const k=e.target.dataset&&e.target.dataset.d;if(k)e.target.open?op.add(k):op.delete(k)},true);
+ /* nama berkas PDF mengikuti judul halaman saat dicetak */
+ const old=document.title;window.onbeforeprint=()=>{document.title=`CV - ${D.site.nama}`};window.onafterprint=()=>{document.title=old};
+ panel();paper()};
 
 /* ---- Router, tema, bahasa ---- */
 function chrome(){$('#menu').innerHTML=nav.map(k=>`<li><a data-k="${k}" href="${H(k=='kuliah'?'perkuliahan':k)}">${u(k)}</a></li>`).join('');
