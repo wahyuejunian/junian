@@ -48,7 +48,12 @@ async function load(n){const url=(D.site?.sheets||{})[n];
 async function init(){app.innerHTML='<div class="sk"></div>'.repeat(4);
  D.site=await (await fetch(B+'data/site.json')).json();
  for(const n of['publikasi','hibah','pengabdian','bimbingan','matakuliah','materi','ebook','pengalaman','kamus'])D[n]=await load(n).catch(()=>[]);
- D.kmap=Object.fromEntries((D.kamus||[]).map(x=>[x.kategori+'|'+x.nilai,x]));build();chrome();route()}
+ D.kmap=Object.fromEntries((D.kamus||[]).map(x=>[x.kategori+'|'+x.nilai,x]));
+ /* Waktu edit terakhir: tab "info" di Sheets (kolom kunci, nilai; baris updated) diisi otomatis oleh Apps Script.
+    Bila tab belum dipublikasikan atau gagal dimuat, dipakai tanggal manual "updated" di site.json */
+ const inf=(D.site.sheets||{}).info;
+ if(inf&&!String(inf).includes('DUMMY')){try{const r=await fetch(inf);if(r.ok){const w=csv(await r.text()).find(x=>x.kunci=='updated');if(w&&w.nilai)D.site.updated=String(w.nilai)}}catch(e){}}
+ build();chrome();route()}
 
 /* ---- Grafik (warna mengikuti tema) ---- */
 const count=(a,k)=>a.reduce((m,x)=>(m[x[k]]=(m[x[k]]||0)+1,m),{});
@@ -65,7 +70,11 @@ const box=(id)=>`<div class="card chart-card"><canvas id="${id}" role="img" aria
 /* ---- Tampilan ---- */
 const nav=['profil','penelitian','pengabdian','bimbingan','kuliah','ebook','proyek','kontak'];
 const links=o=>Object.entries(o).map(([k,v])=>`<a class="chip" href="${v}" target="_blank" rel="noopener">${k}</a>`).join('');
-const stamp=()=>`<p class="muted">${u('upd')}: ${D.site.updated} · ${u('src')}: ${live?u('sheet'):u('local')}</p>`;
+/* "2026-11-08" -> tanggal saja; "2026-11-08T14:30:12+07:00" -> tanggal + jam WIB */
+const fmtUpd=x=>{x=String(x||'');const d=new Date(x);if(isNaN(d))return x;const loc=lang=='id'?'id-ID':'en-GB';
+ return /^\d{4}-\d{2}-\d{2}$/.test(x)?d.toLocaleDateString(loc,{day:'numeric',month:'short',year:'numeric',timeZone:'UTC'})
+  :d.toLocaleString(loc,{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit',hour12:false,timeZone:'Asia/Jakarta'})+' WIB'};
+const stamp=()=>`<p class="muted">${u('upd')}: ${esc(fmtUpd(D.site.updated))} · ${u('src')}: ${live?u('sheet'):u('local')}</p>`;
 const V={
 home(){const s=D.site;
  return `<section class="hero"><div class="hero-copy"><span class="role">${esc(t(s.jabatan))} · ${esc(s.afiliasi)}</span><h1>${esc(s.nama)}</h1><p>${esc(t(s.ringkas))}</p>
