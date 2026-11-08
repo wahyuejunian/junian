@@ -1,0 +1,146 @@
+[
+ {
+  "kategori": "jenis_publikasi",
+  "nilai": "Research Article",
+  "id": "Artikel jurnal",
+  "en": "Research article"
+ },
+ {
+  "kategori": "jenis_publikasi",
+  "nilai": "Proceeding",
+  "id": "Prosiding",
+  "en": "Proceeding"
+ },
+ {
+  "kategori": "jenis_publikasi",
+  "nilai": "Book Chapter",
+  "id": "Bab buku",
+  "en": "Book chapter"
+ },
+ {
+  "kategori": "jenis_publikasi",
+  "nilai": "Other",
+  "id": "Lainnya",
+  "en": "Other"
+ },
+ {
+  "kategori": "peran_publikasi",
+  "nilai": "First Author",
+  "id": "Penulis pertama",
+  "en": "First author"
+ },
+ {
+  "kategori": "peran_publikasi",
+  "nilai": "Co-author",
+  "id": "Penulis anggota",
+  "en": "Co-author"
+ },
+ {
+  "kategori": "skema_hibah",
+  "nilai": "Penelitian Mandiri",
+  "id": "Penelitian Mandiri",
+  "en": "Independent research"
+ },
+ {
+  "kategori": "skema_hibah",
+  "nilai": "Penelitian Internal",
+  "id": "Penelitian Internal",
+  "en": "Internal research grant"
+ },
+ {
+  "kategori": "peran_hibah",
+  "nilai": "Ketua",
+  "id": "Ketua",
+  "en": "Principal investigator"
+ },
+ {
+  "kategori": "peran_hibah",
+  "nilai": "Anggota",
+  "id": "Anggota",
+  "en": "Member"
+ },
+ {
+  "kategori": "bidang_pengabdian",
+  "nilai": "Air tanah",
+  "id": "Air tanah",
+  "en": "Groundwater"
+ },
+ {
+  "kategori": "bidang_pengabdian",
+  "nilai": "Kebencanaan",
+  "id": "Kebencanaan",
+  "en": "Disaster management"
+ },
+ {
+  "kategori": "jenis_bimbingan",
+  "nilai": "Skripsi",
+  "id": "Skripsi",
+  "en": "Undergraduate thesis"
+ },
+ {
+  "kategori": "jenis_bimbingan",
+  "nilai": "Tesis",
+  "id": "Tesis",
+  "en": "Master's thesis"
+ },
+ {
+  "kategori": "jenis_bimbingan",
+  "nilai": "Disertasi",
+  "id": "Disertasi",
+  "en": "Doctoral dissertation"
+ },
+ {
+  "kategori": "jenis_bimbingan",
+  "nilai": "Paper",
+  "id": "Paper",
+  "en": "Paper"
+ },
+ {
+  "kategori": "status_bimbingan",
+  "nilai": "Lulus",
+  "id": "Lulus",
+  "en": "Completed"
+ },
+ {
+  "kategori": "status_bimbingan",
+  "nilai": "Berjalan",
+  "id": "Berjalan",
+  "en": "Ongoing"
+ },
+ {
+  "kategori": "peran_pengalaman",
+  "nilai": "Reviewer",
+  "id": "Reviewer",
+  "en": "Reviewer"
+ },
+ {
+  "kategori": "peran_pengalaman",
+  "nilai": "Committee",
+  "id": "Panitia",
+  "en": "Committee"
+ },
+ {
+  "kategori": "peran_pengalaman",
+  "nilai": "Verifier",
+  "id": "Verifikator",
+  "en": "Verifier"
+ },
+ {
+  "kategori": "peran_pengalaman",
+  "nilai": "Assessor",
+  "id": "Asesor",
+  "en": "Assessor"
+ },
+ {
+  "kategori": "peran_pengalaman",
+  "nilai": "Job",
+  "id": "Jabatan",
+  "en": "Position"
+ },
+ {
+  "kategori": "peran_pengalaman",
+  "nilai": "Speaker",
+  "id": "Pembicara",
+  "en": "Speaker"
+ }
+]
