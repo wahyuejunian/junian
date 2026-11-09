@@ -28,8 +28,8 @@ const ext=(txt,url,arrow=1)=>{url=safeUrl(url);return url?`<a class="record-titl
 const pubRef=p=>{const d=p.doi?String(p.doi).replace(/^https?:\/\/(dx\.)?doi\.org\//i,'').replace(/^doi:\s*/i,'').trim():'';return /^10\.\d{4,}\//.test(d)?{doi:d,url:'https://doi.org/'+d}:{doi:'',url:safeUrl(p.doi)||safeUrl(p.tautan)}};
 function build(){D.mk=D.matakuliah.map(c=>{const e=String(okv(c.cpmk_en)?c.cpmk_en:'').split(';');return {...c,nama:bi(c,'nama'),deskripsi:bi(c,'deskripsi'),
  cpmk:String(c.cpmk||'').split(';').map((x,i)=>({id:x.trim(),en:(e[i]||x).trim()})).filter(x=>x.id)}});
- /* nama kolom lama pengalaman (status, instansi) tetap terbaca bila Sheets belum diperbarui */
- D.pengalaman=(D.pengalaman||[]).map(x=>({...x,peran:x.peran??x.status,kegiatan:x.kegiatan??x.instansi}));
+ /* struktur lama tab pengalaman (status/instansi, atau peran sebagai kategori + kegiatan) tetap terbaca bila Sheets belum diperbarui */
+ D.pengalaman=(D.pengalaman||[]).map(x=>x.kategori===undefined?{...x,kategori:x.peran??x.status,peran:'',judul:x.judul??x.kegiatan??x.instansi}:{...x,judul:x.judul??x.kegiatan});
  D.ebook=(D.ebook||[]).map(b=>({...b,judul:typeof b.judul=='object'?b.judul:bi(b,'judul'),deskripsi:typeof b.deskripsi=='object'?b.deskripsi:bi(b,'deskripsi')}))}
 async function loadMeet(c){if(c.pertemuan)return;let rows=null;
  if(c.data_url&&!String(c.data_url).includes('DUMMY')){try{const r=await fetch(c.data_url);if(r.ok)rows=csv(await r.text())}catch(e){}}
@@ -70,6 +70,14 @@ const box=(id)=>`<div class="card chart-card"><canvas id="${id}" role="img" aria
 /* ---- Tampilan ---- */
 const nav=['profil','penelitian','pengabdian','bimbingan','kuliah','ebook','proyek','kontak'];
 const links=o=>Object.entries(o).map(([k,v])=>`<a class="chip" href="${v}" target="_blank" rel="noopener">${k}</a>`).join('');
+/* Pengalaman: kategori Job = riwayat pekerjaan; kategori lain (Reviewer, Speaker, Committee, ...) = kegiatan akademik */
+const JOB='Job',PJ={id:{job:'Riwayat pekerjaan',akad:'Kegiatan akademik',now:'sekarang',other:'Lainnya'},en:{job:'Employment history',akad:'Academic activities',now:'present',other:'Other'}};
+const Kc=(v,l=lang)=>!v?PJ[l].other:(D.kmap||{})['kategori_pengalaman|'+v]?K('kategori_pengalaman',v,l):K('peran_pengalaman',v,l);
+const period=(x,l=lang)=>{const a=x.tahun,b=x.selesai;return b&&String(b)!=String(a)?`${a} – ${b}`:x.kategori==JOB&&!b?`${a} – ${PJ[l].now}`:String(a)};
+const jobCmp=(a,b)=>(b.selesai||9999)-(a.selesai||9999)||b.tahun-a.tahun;          /* yang masih berjalan dulu, lalu terbaru */
+const actCmp=(a,b)=>(b.selesai||b.tahun)-(a.selesai||a.tahun)||b.tahun-a.tahun;
+const catOrder=()=>Object.keys(D.kmap||{}).filter(k=>k.startsWith('kategori_pengalaman|')).map(k=>k.split('|')[1]);
+const actCats=rows=>{const o=catOrder();return [...new Set(rows.filter(r=>r.kategori!=JOB).map(r=>r.kategori||''))].sort((a,b)=>(o.indexOf(a)+1||99)-(o.indexOf(b)+1||99))};
 /* "2026-11-08" -> tanggal saja; "2026-11-08T14:30:12+07:00" -> tanggal + jam WIB */
 const fmtUpd=x=>{x=String(x||'');const d=new Date(x);if(isNaN(d))return x;const loc=lang=='id'?'id-ID':'en-GB';
  return /^\d{4}-\d{2}-\d{2}$/.test(x)?d.toLocaleDateString(loc,{day:'numeric',month:'short',year:'numeric',timeZone:'UTC'})
@@ -103,7 +111,7 @@ home(){const s=D.site;
   const heading=`<header class="note-detail-heading"><a class="back-link" href="${H('ebook')}">← ${lang=='id'?'Semua catatan':'All notes'}</a>${cover?`<img class="note-detail-cover" src="${esc(img(cover))}" alt="">`:''}<div class="note-detail-copy"><div class="note-tags">${tags.map(x=>`<span class="chip">${esc(x)}</span>`).join('')}</div><h1>${esc(t(b.judul))}</h1><p>${esc(t(b.deskripsi)||'')}</p>${b.pdf&&b.pdf!='#'?`<a class="btn" href="${esc(b.pdf)}" target="_blank" rel="noopener">${u('unduh')}</a>`:''}</div></header>`;
   if(b.tipe=='html')return `${heading}<div class="note-open-link"><a href="${esc(B+b.file)}" target="_blank" rel="noopener">${lang=='id'?'Buka layar penuh':'Open full screen'} ↗</a></div><iframe id="ebf" class="embed" src="${esc(B+b.file)}" title="${esc(t(b.judul))}"></iframe>`;
   return `${heading}<div class="book note-book"><nav class="toc" id="toc" aria-label="TOC"></nav><article class="md" id="md"></article></div>`},
- proyek(){return `<header class="page-heading"><div><p class="eyebrow">${lang=='id'?'PERAN & KONTRIBUSI':'ROLES & CONTRIBUTIONS'}</p><h1>${u('proyek')}</h1></div>${stamp()}</header><section class="section-block"><h2 class="section-title">${lang=='id'?'Riwayat pengalaman':'Experience history'}</h2><div class="tools filter-panel"><input id="q" type="search" placeholder="${u('search')}" aria-label="${u('search')}"><select id="fy" aria-label="${u('year')}"></select><select id="fs" aria-label="${lang=='id'?'Peran':'Role'}"></select></div><div class="experience-list" id="list"></div></section>`},
+ proyek(){return `<header class="page-heading"><div><p class="eyebrow">${lang=='id'?'PERAN & KONTRIBUSI':'ROLES & CONTRIBUTIONS'}</p><h1>${u('proyek')}</h1></div>${stamp()}</header><section class="section-block"><h2 class="section-title">${lang=='id'?'Pekerjaan & kegiatan akademik':'Employment & academic activities'}</h2><div class="tools filter-panel"><input id="q" type="search" placeholder="${u('search')}" aria-label="${u('search')}"><select id="fy" aria-label="${u('year')}"></select><select id="fs" aria-label="${lang=='id'?'Peran':'Role'}"></select></div><div id="list"></div></section>`},
  kontak(){const s=D.site;return `<header class="page-heading"><div><p class="eyebrow">${lang=='id'?'MARI TERHUBUNG':'GET IN TOUCH'}</p><h1>${u('kontak')}</h1><p class="page-intro">${lang=='id'?'Silakan hubungi saya untuk diskusi akademik, kolaborasi, atau pertanyaan.':'Contact me for academic discussions, collaboration, or inquiries.'}</p></div></header><div class="contact-layout"><section class="contact-card"><h2>${lang=='id'?'Informasi kontak':'Contact information'}</h2><a class="contact-row" href="mailto:${esc(s.email)}"><span class="contact-icon">@</span><span><small>Email</small><b>${esc(s.email)}</b></span></a><div class="contact-row"><span class="contact-icon">⌖</span><span><small>${lang=='id'?'Lokasi':'Location'}</small><b>${esc(s.alamat)}</b></span></div><div class="contact-row"><span class="contact-icon">◷</span><span><small>${lang=='id'?'Jam konsultasi':'Office hours'}</small><b>${esc(t(s.konsultasi))}</b></span></div></section>
   <form class="contact-form" action="https://api.web3forms.com/submit" method="POST"><h2>${lang=='id'?'Kirim pesan':'Send a message'}</h2><input type="hidden" name="access_key" value="${esc(s.web3forms)}"><label>${lang=='id'?'Nama':'Name'}<input name="name" placeholder="${lang=='id'?'Nama lengkap':'Full name'}" required></label><label>Email<input name="email" type="email" placeholder="nama@email.com" required></label><label>${lang=='id'?'Pesan':'Message'}<textarea name="message" rows="5" required placeholder="${lang=='id'?'Tulis pesan Anda di sini…':'Write your message here…'}"></textarea></label><button class="btn">${u('send')} <span aria-hidden="true">→</span></button></form></div>`}};
 
@@ -146,12 +154,19 @@ const after={
   const go=()=>{const q=$('#q').value.toLowerCase(),r=M.filter(b=>(!$('#fy').value||b.tahun==$('#fy').value)&&(!$('#fs').value||b.status==$('#fs').value)&&(!$('#fj').value||b.jenjang==$('#fj').value)&&(b.nama+b.topik).toLowerCase().includes(q));
    $('#list').innerHTML=r.map(b=>{const t2=tandem(b);return `<article class="record-card supervision-card"><span class="record-year">${esc(b.tahun)}</span><div class="record-content"><div class="record-tags"><span class="chip">${esc(b.jenjang)} · ${esc(b.jenis)}</span><span class="chip">${esc(b.status)}</span></div><h3>${esc(b.nama)}</h3><p>${esc(b.topik)}</p>${t2?`<p class="record-meta">${lang=='id'?'Pembimbing tandem':'Co-supervisors'}: ${esc(t2)}</p>`:''}</div></article>`}).join('')||`<p class="note">${u('empty')}</p>`};
   ['q','fy','fs','fj'].forEach(i=>$('#'+i).oninput=go);go()},
- proyek(){const M=(D.pengalaman||[]).map(x=>({...x,peran:K('peran_pengalaman',x.peran),kegiatan:L(x,'kegiatan'),keterangan:L(x,'keterangan')})),y=years(M).sort((a,b)=>b-a),st=[...new Set(M.map(x=>x.peran).filter(Boolean))].sort();
-  const opt=(ph,a)=>`<option value="">${ph}</option>`+a.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join('');
-  $('#fy').innerHTML=opt(u('year'),y);$('#fs').innerHTML=opt(lang=='id'?'Semua peran':'All roles',st);
-  const go=()=>{const q=$('#q').value.trim().toLowerCase(),year=$('#fy').value,status=$('#fs').value;
-   const rows=M.filter(x=>(!year||String(x.tahun)==year)&&(!status||x.peran==status)&&[x.tahun,x.peran,x.kegiatan,x.keterangan].join(' ').toLowerCase().includes(q)).sort((a,b)=>b.tahun-a.tahun);
-   $('#list').innerHTML=rows.map(x=>`<article class="item experience-item"><div class="experience-year">${esc(x.tahun)}</div><div><span class="chip experience-status">${esc(x.peran)}</span><h3>${ext(esc(x.kegiatan),x.tautan)}</h3>${x.keterangan?`<p>${esc(x.keterangan)}</p>`:''}</div></article>`).join('')||`<p class="note">${u('empty')}</p>`};
+ proyek(){const M=D.pengalaman||[],y=years(M).sort((a,b)=>b-a),cats=[...(M.some(x=>x.kategori==JOB)?[JOB]:[]),...actCats(M)],COMPACT=['Reviewer'],now=new Date().getFullYear();
+  const opt=(ph,a)=>`<option value="">${ph}</option>`+a.map(([v,t])=>`<option value="${esc(v)}">${esc(t)}</option>`).join('');
+  $('#fy').innerHTML=opt(u('year'),y.map(v=>[v,v]));$('#fs').innerHTML=opt(lang=='id'?'Semua kategori':'All categories',cats.map(c=>[c,Kc(c)]));
+  const rng=x=>esc(period(x)).replace(' – ',' –<br>'),sub=x=>`${x.lembaga?`<p class="record-meta">${esc(x.lembaga)}</p>`:''}${L(x,'keterangan')?`<p>${esc(L(x,'keterangan'))}</p>`:''}`;
+  const card=x=>`<article class="item experience-item"><div class="experience-year${String(period(x)).length>4?' range':''}">${rng(x)}</div><div>${L(x,'peran')?`<span class="chip experience-status">${esc(L(x,'peran'))}</span>`:''}<h3>${ext(esc(L(x,'judul')),x.tautan)}</h3>${sub(x)}</div></article>`;
+  const line=x=>`<li><span class="exp-yr">${esc(period(x))}</span><span>${ext(esc(L(x,'judul')),x.tautan)}${x.lembaga?` <span class="muted">· ${esc(x.lembaga)}</span>`:''}${L(x,'keterangan')?` <span class="chip">${esc(L(x,'keterangan'))}</span>`:''}</span></li>`;
+  const go=()=>{const q=$('#q').value.trim().toLowerCase(),year=$('#fy').value,cat=$('#fs').value;
+   const rows=M.filter(x=>(!year||(+year>=+x.tahun&&+year<=+(x.selesai||(x.kategori==JOB?now:x.tahun))))&&(!cat||(x.kategori||'')==cat)&&[x.tahun,x.selesai,Kc(x.kategori),L(x,'judul'),L(x,'peran'),x.lembaga,L(x,'keterangan')].join(' ').toLowerCase().includes(q));
+   const jobs=rows.filter(x=>x.kategori==JOB).sort(jobCmp),grp=actCats(rows).map(c=>[c,rows.filter(x=>(x.kategori||'')==c).sort(actCmp)]);
+   const head=(t,n,c)=>`<h3 class="exp-group">${t}${n!=null?` <span class="muted">(${n})</span>`:''}</h3>`;
+   $('#list').innerHTML=(jobs.length?head(PJ[lang].job,jobs.length)+`<div class="experience-list">${jobs.map(card).join('')}</div>`:'')
+    +(grp.length?head(PJ[lang].akad)+grp.map(([c,r])=>`<h4 class="exp-cat">${esc(Kc(c))} <span class="muted">(${r.length})</span></h4>`+(COMPACT.includes(c)?`<ul class="exp-compact">${r.map(line).join('')}</ul>`:`<div class="experience-list">${r.map(card).join('')}</div>`)).join(''):'')
+    ||`<p class="note">${u('empty')}</p>`};
   ['q','fy','fs'].forEach(i=>$('#'+i).oninput=go);go()},
  async ebook(id){const b=D.ebook.find(x=>x.id==id);if(!b){const input=$('#note-q');if(input)input.oninput=()=>{const q=input.value.trim().toLowerCase();let visible=0;$('#note-list').querySelectorAll('.note-card').forEach(card=>{const show=card.dataset.search.includes(q);card.hidden=!show;if(show)visible++});$('#note-empty').hidden=visible>0};return}
   if(b.tipe=='html'){const f=$('#ebf'),fit=()=>{try{f.style.height=Math.max(640,f.contentDocument.documentElement.scrollHeight)+'px'}catch(e){}};
@@ -169,13 +184,15 @@ const shortUrl=x=>{x=String(x).replace(/^https?:\/\/(www\.)?/,'').replace(/\/$/,
 const cvSecs=(cl,names)=>{const s=D.site,tt=o=>tl(o,cl),desc=(a,k)=>[...(a||[])].sort((x,y)=>(+y[k]||0)-(+x[k]||0)),
  li=(yr,body)=>`<li class="cv-item"><span class="cv-yr">${esc(yr)}</span><div>${body}</div></li>`,
  meta=(a,...h)=>`<span class="cv-meta">${[...a.filter(Boolean).map(esc),...h.filter(Boolean)].join(' · ')}</span>`;
+const px=D.pengalaman||[],pxKey=x=>x.tahun+'|'+x.judul,pxLab=x=>`${period(x,cl)} · ${L(x,'judul',cl)}`,PJ_L=k=>({id:PJ.id[k],en:PJ.en[k]}),
+ pxHtml=x=>li(period(x,cl),`<b>${ext(esc(L(x,'judul',cl)),x.tautan,0)}</b>${L(x,'peran',cl)?` ${meta([`(${L(x,'peran',cl)})`])}`:''}${x.lembaga?`<br>${esc(x.lembaga)}`:''}${L(x,'keterangan',cl)?`<br>${meta([L(x,'keterangan',cl)])}`:''}`),
+ kg=actCats(px).map(c=>({k:'kg-'+c,l:{id:Kc(c,'id'),en:Kc(c,'en')},grp:PJ_L('akad'),pick:1,rows:px.filter(x=>x.kategori!=JOB&&(x.kategori||'')==c).sort(actCmp),key:pxKey,lab:pxLab,html:pxHtml}));
  return [
  {k:'bio',l:{id:'Profil singkat',en:'Summary'},rows:[s],key:()=>'bio',html:()=>`<p>${esc(tt(s.bio))}</p>`,wrap:h=>h.join('')},
  {k:'keahlian',l:{id:'Keahlian',en:'Expertise'},pick:1,rows:s.keahlian||[],key:x=>x.id||x,lab:x=>tt(x),html:x=>esc(tt(x)),wrap:h=>`<p>${h.join(' · ')}</p>`},
  {k:'pendidikan',l:{id:'Pendidikan',en:'Education'},pick:1,rows:s.pendidikan||[],key:e=>e.jenjang+'|'+e.kampus,lab:e=>`${e.jenjang} · ${e.kampus}`,
   html:e=>li(e.tahun,`<b>${esc(e.jenjang)}</b> — ${esc(e.kampus)}`)},
- {k:'pengalaman',l:{id:'Pengalaman',en:'Experience'},pick:1,rows:desc(D.pengalaman,'tahun'),key:x=>x.tahun+'|'+x.kegiatan,lab:x=>`${x.tahun} · ${L(x,'kegiatan',cl)}`,
-  html:x=>li(x.tahun,`<b>${ext(esc(L(x,'kegiatan',cl)),x.tautan,0)}</b>${x.peran?` ${meta([`(${K('peran_pengalaman',x.peran,cl)})`])}`:''}${L(x,'keterangan',cl)?`<br>${esc(L(x,'keterangan',cl))}`:''}`)},
+ {k:'pekerjaan',l:PJ_L('job'),pick:1,rows:px.filter(x=>x.kategori==JOB).sort(jobCmp),key:pxKey,lab:pxLab,html:pxHtml,wrap:h=>`<ul class="cv-list mid">${h.join('')}</ul>`},
  {k:'publikasi',l:{id:'Publikasi',en:'Publications'},pick:1,rows:desc(D.publikasi,'tahun'),key:p=>p.judul,lab:p=>`${p.tahun} · ${p.judul}`,
   html:p=>{const r=pubRef(p);return li(p.tahun,`<b>${esc(p.judul)}</b><br>${esc(p.penulis)} · <i>${esc(p.jurnal)}</i><br>${meta([K('jenis_publikasi',p.jenis,cl),K('peran_publikasi',p.peran,cl),p.kuartil,p.sinta&&String(p.sinta).replace(/^S/i,'SINTA ')],r.doi?`<a href="${esc(r.url)}">doi:${esc(r.doi)}</a>`:r.url?`<a href="${esc(r.url)}">${cl=='id'?'tautan':'link'}</a>`:'')}`)}},
  {k:'hibah',l:{id:'Hibah penelitian',en:'Research grants'},pick:1,rows:desc(D.hibah,'tahun'),key:h=>h.judul,lab:h=>`${h.tahun} · ${L(h,'judul',cl)}`,
@@ -186,12 +203,13 @@ const cvSecs=(cl,names)=>{const s=D.site,tt=o=>tl(o,cl),desc=(a,k)=>[...(a||[])]
   html:c=>li(c.kode,`<b>${esc(tt(c.nama))}</b> ${meta([`${c.sks} SKS`,`Semester ${c.semester}`])}`)},
  {k:'bimbingan',l:{id:'Bimbingan mahasiswa',en:'Student supervision'},pick:1,rows:desc(D.bimbingan,'tahun'),key:b=>b.nama+'|'+b.topik,lab:b=>`${b.tahun} · ${b.nama} — ${L(b,'topik',cl)}`,
   html:b=>li(b.tahun,`${names?`<b>${esc(b.nama)}</b> — ${esc(L(b,'topik',cl))}`:`<b>${esc(L(b,'topik',cl))}</b>`}<br>${meta([`${b.jenjang} ${K('jenis_bimbingan',b.jenis,cl)}`,K('status_bimbingan',b.status,cl)])}`)},
+ ...kg,
  {k:'tautan',l:{id:'Profil & tautan',en:'Profiles & links'},pick:1,rows:Object.entries(s.links||{}),key:e=>e[0],lab:e=>e[0],
   html:e=>li(e[0],`<a href="${esc(e[1])}">${esc(shortUrl(e[1]))}</a>`),wrap:h=>`<ul class="cv-list wide">${h.join('')}</ul>`}]};
 /* Pilihan cepat: on = bagian yang aktif (null = semua) */
 const PRE={full:{l:{id:'Lengkap',en:'Full'},on:null},
- ak:{l:{id:'Akademik',en:'Academic'},on:['bio','keahlian','pendidikan','pengalaman','publikasi','hibah','pengabdian','mengajar','tautan']},
- short:{l:{id:'Ringkas',en:'Short'},on:['bio','pendidikan','pengalaman','publikasi']}};
+ ak:{l:{id:'Akademik',en:'Academic'},on:['bio','keahlian','pendidikan','pekerjaan','kegiatan','publikasi','hibah','pengabdian','mengajar','tautan']},
+ short:{l:{id:'Ringkas',en:'Short'},on:['bio','pendidikan','pekerjaan','publikasi']}};
 V.cv=()=>`<header class="page-heading"><div><p class="eyebrow">CURRICULUM VITAE</p><h1>CV</h1><p class="page-intro">${lang=='id'?'Pilih bagian dan butir yang ingin dimasukkan, periksa pratinjau, lalu unduh sebagai PDF.':'Choose the sections and items to include, check the preview, then download it as a PDF.'}</p></div></header>
  <div class="cv-layout"><aside class="cv-controls" id="cvc" aria-label="${lang=='id'?'Pengaturan CV':'CV settings'}"></aside><div class="cv-stage"><article class="cv-paper" id="cvp" aria-label="${lang=='id'?'Pratinjau CV':'CV preview'}"></article></div></div>`;
 after.cv=()=>{
@@ -200,20 +218,23 @@ after.cv=()=>{
  cfg={on:cfg.on||{},off:cfg.off||{},hdr:{...def.hdr,...(cfg.hdr||{})}};
  let cl=lang;const op=new Set(),S0=()=>cvSecs(cl,!!cfg.hdr.names),offs=k=>new Set(cfg.off[k]||[]),sel=x=>x.rows.filter(r=>!offs(x.k).has(x.key(r))),
   save=()=>{try{localStorage.cvcfg=JSON.stringify(cfg)}catch(e){}},cnt=x=>`(${sel(x).length}/${x.rows.length})`;
- const panel=()=>{const S=S0(),hd=[['foto',ui('Foto','Photo')],['email','Email'],['alamat',ui('Lokasi','Location')],['stats',ui('Sitasi & h-index','Citations & h-index')]];
+ const panel=()=>{let lg='';const S=S0(),hd=[['foto',ui('Foto','Photo')],['email','Email'],['alamat',ui('Lokasi','Location')],['stats',ui('Sitasi & h-index','Citations & h-index')]];
   $('#cvc').innerHTML=`<button type="button" class="btn cv-print" data-act="print">⬇ ${ui('Unduh PDF','Download PDF')}</button>
   <p class="muted cv-tip">${ui('Di dialog cetak pilih “Simpan sebagai PDF”, lalu matikan opsi “Header dan footer”.','In the print dialog choose “Save as PDF”, then turn off “Headers and footers”.')}</p>
   <h2>${ui('Bahasa CV','CV language')}</h2><select id="cvlang" aria-label="${ui('Bahasa CV','CV language')}"><option value="id">Bahasa Indonesia</option><option value="en">English</option></select>
   <h2>${ui('Pilihan cepat','Presets')}</h2><div class="cv-presets">${Object.entries(PRE).map(([k,p])=>`<button type="button" class="cv-mini" data-act="pre" data-v="${k}">${p.l[lang]}</button>`).join('')}</div>
   <h2>${ui('Kepala CV','Header')}</h2>${hd.map(([k,l])=>`<div class="cv-row"><label><input type="checkbox" data-hdr="${k}"${cfg.hdr[k]?' checked':''}> ${l}</label></div>`).join('')}
   <h2>${ui('Bagian','Sections')}</h2>${S.map(x=>{const n=x.rows.length,o=offs(x.k);
-   return `<div class="cv-row"><label><input type="checkbox" data-sec="${x.k}"${cfg.on[x.k]!==false&&n?' checked':''}${n?'':' disabled'}> <span>${esc(x.l[lang])}</span> <span class="muted cv-n" data-n="${x.k}">${n?cnt(x):ui('(kosong)','(empty)')}</span></label>
+   const gh=x.grp&&x.grp.id!==lg?`<div class="cv-grp">${esc(x.grp[lang])}</div>`:'';if(x.grp)lg=x.grp.id;
+   return `${gh}<div class="cv-row"><label><input type="checkbox" data-sec="${x.k}"${cfg.on[x.k]!==false&&n?' checked':''}${n?'':' disabled'}> <span>${esc(x.l[lang])}</span> <span class="muted cv-n" data-n="${x.k}">${n?cnt(x):ui('(kosong)','(empty)')}</span></label>
    ${x.k=='bimbingan'?`<label class="cv-sub"><input type="checkbox" data-hdr="names"${cfg.hdr.names?' checked':''}> ${ui('Tampilkan nama mahasiswa','Show student names')}</label>`:''}
    ${x.pick&&n>1?`<details data-d="${x.k}"${op.has(x.k)?' open':''}><summary>${ui('Pilih butir','Choose items')}</summary><div class="cv-bulk"><button type="button" class="cv-mini" data-act="all" data-v="${x.k}">${ui('Semua','All')}</button><button type="button" class="cv-mini" data-act="none" data-v="${x.k}">${ui('Kosongkan','None')}</button></div><div class="cv-items">${x.rows.map(r=>`<label><input type="checkbox" data-item="${x.k}" data-key="${esc(x.key(r))}"${o.has(x.key(r))?'':' checked'}> <span>${esc(x.lab(r))}</span></label>`).join('')}</div></details>`:''}</div>`}).join('')}`;
   $('#cvlang').value=cl};
  const paper=()=>{const s=D.site,h=cfg.hdr,tt=o=>tl(o,cl),
   contact=[h.email&&s.email&&`<a href="mailto:${esc(s.email)}">${esc(s.email)}</a>`,h.alamat&&s.alamat&&esc(s.alamat),h.stats&&s.stats&&`${cl=='id'?'Sitasi':'Citations'} ${esc(s.stats.sitasi)} · h-index ${esc(s.stats.hindex)}`].filter(Boolean).join(' · ');
-  const body=S0().filter(x=>cfg.on[x.k]!==false).map(x=>{const r=sel(x);return r.length?`<section class="cv-sec"><h2>${esc(x.l[cl])}</h2>${(x.wrap||(a=>`<ul class="cv-list">${a.join('')}</ul>`))(r.map(i=>x.html(i)))}</section>`:''}).join('');
+  let lg='';const body=S0().filter(x=>cfg.on[x.k]!==false).map(x=>{const r=sel(x);if(!r.length)return '';const g=x.grp&&x.grp.id!==lg;if(x.grp)lg=x.grp.id;
+   const list=(x.wrap||(a=>`<ul class="cv-list">${a.join('')}</ul>`))(r.map(i=>x.html(i)));
+   return `<section class="cv-sec">${x.grp?`${g?`<h2>${esc(x.grp[cl])}</h2>`:''}<h3>${esc(x.l[cl])}</h3>`:`<h2>${esc(x.l[cl])}</h2>`}${list}</section>`}).join('');
   $('#cvp').innerHTML=`<header class="cv-head"><div><h1>${esc(s.nama)}</h1><p class="cv-role">${esc(tt(s.jabatan))} · ${esc(s.afiliasi)}</p>${contact?`<p class="cv-contact">${contact}</p>`:''}</div>${h.foto&&s.foto?`<img class="cv-photo" src="${esc(img(s.foto))}" alt="">`:''}</header>${body||`<p class="cv-meta">${cl=='id'?'Belum ada bagian yang dipilih.':'No sections selected.'}</p>`}`};
  const box=$('#cvc');
  box.onchange=e=>{const g=e.target,d=g.dataset;
@@ -224,7 +245,7 @@ after.cv=()=>{
   save();paper()};
  box.onclick=e=>{const b=e.target.closest('[data-act]');if(!b)return;const a=b.dataset.act,v=b.dataset.v;
   if(a=='print')return window.print();
-  if(a=='pre'){const p=PRE[v];S0().forEach(x=>cfg.on[x.k]=!p.on||p.on.includes(x.k))}
+  if(a=='pre'){const p=PRE[v];S0().forEach(x=>cfg.on[x.k]=!p.on||p.on.includes(x.k)||(!!x.grp&&p.on.includes('kegiatan')))}
   else{const x=S0().find(y=>y.k==v);cfg.off[v]=a=='all'?[]:x.rows.map(r=>x.key(r))}
   save();panel();paper()};
  box.addEventListener('toggle',e=>{const k=e.target.dataset&&e.target.dataset.d;if(k)e.target.open?op.add(k):op.delete(k)},true);
