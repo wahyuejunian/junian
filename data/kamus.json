@@ -108,39 +108,39 @@
   "en": "Ongoing"
  },
  {
-  "kategori": "peran_pengalaman",
-  "nilai": "Reviewer",
-  "id": "Reviewer",
-  "en": "Reviewer"
+  "kategori": "kategori_pengalaman",
+  "nilai": "Job",
+  "id": "Pekerjaan",
+  "en": "Employment"
  },
  {
-  "kategori": "peran_pengalaman",
+  "kategori": "kategori_pengalaman",
+  "nilai": "Reviewer",
+  "id": "Reviewer jurnal",
+  "en": "Journal reviewer"
+ },
+ {
+  "kategori": "kategori_pengalaman",
+  "nilai": "Speaker",
+  "id": "Narasumber",
+  "en": "Speaker"
+ },
+ {
+  "kategori": "kategori_pengalaman",
   "nilai": "Committee",
-  "id": "Panitia",
+  "id": "Kepanitiaan",
   "en": "Committee"
  },
  {
-  "kategori": "peran_pengalaman",
-  "nilai": "Verifier",
-  "id": "Verifikator",
-  "en": "Verifier"
- },
- {
-  "kategori": "peran_pengalaman",
+  "kategori": "kategori_pengalaman",
   "nilai": "Assessor",
   "id": "Asesor",
   "en": "Assessor"
  },
  {
-  "kategori": "peran_pengalaman",
-  "nilai": "Job",
-  "id": "Jabatan",
-  "en": "Position"
- },
- {
-  "kategori": "peran_pengalaman",
-  "nilai": "Speaker",
-  "id": "Pembicara",
-  "en": "Speaker"
+  "kategori": "kategori_pengalaman",
+  "nilai": "Verifier",
+  "id": "Verifikator",
+  "en": "Verifier"
  }
 ]
