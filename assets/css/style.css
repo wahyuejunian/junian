@@ -263,3 +263,16 @@ footer{margin-top:20px}
  .cv-paper{border:0;border-radius:0;box-shadow:none;padding:0;max-width:none;width:auto;min-height:0;margin:0;font-size:10pt}
  .cv-item{grid-template-columns:var(--yr) 1fr}
 }
+
+/* ===== Pengalaman: pekerjaan vs kegiatan akademik ===== */
+#list .exp-group{font-size:1.25rem;margin:1.8em 0 .3em;padding-bottom:6px;border-bottom:2px solid var(--orange)}
+#list .exp-group:first-child{margin-top:.4em}
+#list .exp-cat{font:700 1rem 'Bricolage Grotesque',system-ui,sans-serif;margin:1.3em 0 .4em;color:var(--accent)}
+.exp-compact{list-style:none;margin:0 0 6px;padding:0;display:grid;gap:8px}
+.exp-compact li{display:flex;gap:14px;align-items:baseline;padding:10px 14px;background:var(--card);border:1px solid var(--line);border-radius:10px}
+.exp-yr{font:700 .9rem 'Bricolage Grotesque',system-ui,sans-serif;color:var(--accent);min-width:52px;flex:none}
+.experience-year.range{font-size:.85rem;line-height:1.25;text-align:center;white-space:nowrap}
+.cv-controls .cv-grp{margin:14px 0 2px;font:700 .8rem 'Bricolage Grotesque',system-ui,sans-serif;text-transform:uppercase;letter-spacing:.06em;color:var(--accent)}
+.cv-paper h3{font:600 10pt 'Bricolage Grotesque',system-ui,sans-serif;color:#0F2747;margin:8pt 0 3pt;break-after:avoid}
+.cv-list.mid{--yr:30mm}
+@media screen and (max-width:800px){.cv-list.mid .cv-item{grid-template-columns:100px 1fr}.exp-compact li{flex-direction:column;gap:2px}}
